@@ -138,9 +138,7 @@
         }
 
         /* サムネイル画像スタイル */
-        .thumbnail-picker {
-            margin-bottom: 20px;
-        }
+        .thumbnail-picker { margin-bottom: 20px; }
         .btn-add-thumb {
             width: 100%;
             height: 120px;
@@ -228,7 +226,7 @@
         .ql-editor h2 { font-size: 24px; margin: 48px 0 16px; color: #fff; border-bottom: 1px solid #444; padding-bottom: 8px;}
         .ql-editor h3 { font-size: 20px; margin: 32px 0 16px; color: #eee; }
         
-        /* エディタ内コードブロックの4行制限＋スタイル */
+        /* エディタ内コードブロックの4行制限 */
         .ql-editor pre {
             background: #181c1f;
             padding: 16px;
@@ -238,7 +236,7 @@
             font-family: SFMono-Regular, Consolas, monospace;
             font-size: 14px;
             line-height: 1.5;
-            max-height: 110px; /* 約4行分 */
+            max-height: 110px;
             margin-bottom: 24px;
             position: relative;
             border: 1px solid #333;
@@ -272,9 +270,7 @@
             cursor: pointer;
             transition: outline 0.2s;
         }
-        .ql-editor img.selected-img {
-            outline: 3px solid var(--accent);
-        }
+        .ql-editor img.selected-img { outline: 3px solid var(--accent); }
 
         .img-align-left { float: left; margin: 0 20px 16px 0 !important; max-width: 50% !important; }
         .img-align-right { float: right; margin: 0 0 16px 20px !important; max-width: 50% !important; }
@@ -284,32 +280,60 @@
         .ql-editor blockquote { border-left: 4px solid var(--accent); padding-left: 16px; color: var(--text-muted); margin: 0 0 24px; }
         .ql-editor ul, .ql-editor ol { margin-bottom: 24px; padding-left: 24px; }
 
-        /* 添付ファイルカード */
+        /* データ添付専用ブロック スタイル（参考画像デザイン再現） */
         .file-attachment-card {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            background: #2a3236;
-            border: 1px solid #444;
+            background: #1e252a;
+            border: 1px solid #343d46;
             border-radius: 8px;
-            padding: 12px 16px;
-            margin: 16px 0;
-            max-width: 480px;
+            padding: 20px 24px;
+            margin: 20px 0;
+            width: 100%;
+            box-sizing: border-box;
             user-select: none;
+            cursor: default;
         }
-        .file-icon { font-size: 24px; margin-right: 12px; }
-        .file-details { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .file-name { font-size: 14px; font-weight: bold; color: #eee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .file-size { font-size: 12px; color: var(--text-muted); }
+        .file-info-side {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .file-info-side .file-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffffff;
+            word-break: break-all;
+        }
+        .file-info-side .file-size {
+            font-size: 13px;
+            color: #8c9ba5;
+        }
+        .file-info-side .file-desc {
+            font-size: 13px;
+            color: #8c9ba5;
+        }
         .file-download-btn {
-            background: var(--accent);
-            color: #fff !important;
+            background: #ffffff;
+            color: #1e252a !important;
             border: none;
-            padding: 6px 14px;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
             font-weight: bold;
-            margin-left: 12px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s, opacity 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+            outline: none;
+        }
+        .file-download-btn:hover {
+            background: #e6e6e6;
+            opacity: 0.95;
         }
 
         /* プラスボタン */
@@ -553,11 +577,99 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
     <script>
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        /* ★Quill用データ添付カスタム埋め込みコンポーネント (FileAttachmentBlot) の定義と登録 */
+        const BlockEmbed = Quill.import('blots/block/embed');
+        class FileAttachmentBlot extends BlockEmbed {
+            static create(value) {
+                const node = super.create();
+                const fileName = value.fileName || '無題のファイル';
+                const fileSize = value.fileSize || '';
+                const fileData = value.fileData || '';
+
+                node.setAttribute('data-filename', fileName);
+                node.setAttribute('data-filesize', fileSize);
+                node.setAttribute('data-filedata', fileData);
+                node.setAttribute('contenteditable', 'false');
+
+                node.innerHTML = `
+                    <div class="file-info-side">
+                        <div class="file-name">${escapeHtml(fileName)}</div>
+                        <div class="file-size">${escapeHtml(fileSize)}</div>
+                        <div class="file-desc">ファイルダウンロードについて</div>
+                    </div>
+                    <button type="button" class="file-download-btn" onclick="downloadBase64File(this.closest('.file-attachment-card').getAttribute('data-filedata'), this.closest('.file-attachment-card').getAttribute('data-filename'))">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        ダウンロード
+                    </button>
+                `;
+                return node;
+            }
+
+            static value(node) {
+                return {
+                    fileName: node.getAttribute('data-filename'),
+                    fileSize: node.getAttribute('data-filesize'),
+                    fileData: node.getAttribute('data-filedata')
+                };
+            }
+        }
+        FileAttachmentBlot.blotName = 'fileCard';
+        FileAttachmentBlot.tagName = 'div';
+        FileAttachmentBlot.className = 'file-attachment-card';
+
+        Quill.register(FileAttachmentBlot);
+
+        /* Quillエディタ初期化 */
         const quill = new Quill('#editor', {
             theme: false,
             placeholder: 'ここから書き始める...',
             scrollingContainer: '#main-content',
             modules: {}
+        });
+
+        /* ★コードブロック脱出ショートカット制御 (Shift+Enter / 空行Enter) */
+        if (!quill.keyboard.bindings[13]) {
+            quill.keyboard.bindings[13] = [];
+        }
+
+        // 1. Shift + Enter でコードブロック解除
+        quill.keyboard.bindings[13].unshift({
+            key: 13,
+            shiftKey: true,
+            handler: function(range, context) {
+                if (context.format['code-block']) {
+                    const index = range.index;
+                    quill.insertText(index, '\n', Quill.sources.USER);
+                    quill.formatLine(index + 1, 1, 'code-block', false);
+                    quill.setSelection(index + 1, Quill.sources.SILENT);
+                    return false;
+                }
+                return true;
+            }
+        });
+
+        // 2. 空行で Enter 押下時にコードブロック解除
+        quill.keyboard.bindings[13].unshift({
+            key: 13,
+            shiftKey: false,
+            empty: true,
+            handler: function(range, context) {
+                if (context.format['code-block']) {
+                    quill.formatLine(range.index, 1, 'code-block', false);
+                    return false;
+                }
+                return true;
+            }
         });
 
         const plusBtn = document.getElementById('plus-btn');
@@ -587,9 +699,13 @@
             }, 3000);
         }
 
-        /* 共通：Base64データをBlob化して確実ダウンロード */
+        /* 共通：Base64データをBlob化してダウンロード */
         function downloadBase64File(base64Data, fileName) {
             try {
+                if (!base64Data) {
+                    alert('ファイルデータが存在しません。');
+                    return;
+                }
                 const arr = base64Data.split(',');
                 const mimeMatch = arr[0].match(/:(.*?);/);
                 const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
@@ -689,21 +805,16 @@
                 const fileName = file.name;
                 const fileSize = formatBytes(file.size);
 
-                const index = currentRange ? currentRange.index : quill.getLength();
+                const range = quill.getSelection(true);
+                const index = range ? range.index : quill.getLength();
 
-                const fileCardHTML = `
-                    <div class="file-attachment-card" data-filename="${fileName}" data-filesize="${fileSize}" data-filedata="${fileData}" contenteditable="false">
-                        <div class="file-icon">📎</div>
-                        <div class="file-details">
-                            <span class="file-name">${fileName}</span>
-                            <span class="file-size">${fileSize}</span>
-                        </div>
-                        <button type="button" class="file-download-btn" onclick="downloadBase64File(this.parentElement.getAttribute('data-filedata'), this.parentElement.getAttribute('data-filename'))">ダウンロード</button>
-                    </div>
-                    <p><br></p>
-                `;
+                quill.insertEmbed(index, 'fileCard', {
+                    fileName: fileName,
+                    fileSize: fileSize,
+                    fileData: fileData
+                }, Quill.sources.USER);
 
-                quill.clipboard.dangerouslyPasteHTML(index, fileCardHTML);
+                quill.setSelection(index + 1, Quill.sources.SILENT);
                 showToast('ファイルを添付しました');
             };
             reader.readAsDataURL(file);
@@ -719,7 +830,7 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
         }
 
-        /* エディタ内コードブロックへのコピーボタン挿入制御 */
+        /* エディタ内コードブロックコピーボタン設置 */
         function updateEditorCodeBlocks() {
             document.querySelectorAll('.ql-editor pre').forEach(pre => {
                 if (!pre.querySelector('.editor-copy-btn')) {
@@ -729,7 +840,6 @@
                     btn.setAttribute('contenteditable', 'false');
                     btn.onclick = function(e) {
                         e.stopPropagation();
-                        // コピーボタンを除外した純粋なテキストを取得
                         const clone = pre.cloneNode(true);
                         const btnInClone = clone.querySelector('.editor-copy-btn');
                         if (btnInClone) btnInClone.remove();
@@ -744,7 +854,7 @@
             });
         }
 
-        /* 画像クリック時のツールバー制御 */
+        /* 画像コントロール */
         document.querySelector('.ql-editor').addEventListener('click', function(e) {
             if (e.target.tagName === 'IMG') {
                 if (activeImage) activeImage.classList.remove('selected-img');
@@ -812,7 +922,7 @@
             hideImgToolbar();
         }
 
-        /* Cropper.js モーダル統合管理 */
+        /* Cropper.js モーダル */
         function openCropModal() {
             if (!activeImage) return;
             openCropModalForImage(activeImage.src, false);
@@ -996,6 +1106,10 @@
             if (currentRange) {
                 quill.setSelection(currentRange.index);
                 quill.format(format, value);
+                
+                if (format === 'code-block' && value === true) {
+                    showToast('Shift + Enter キーでコードブロックを抜けられます');
+                }
             }
             insertMenu.style.display = 'none';
         }
@@ -1057,7 +1171,6 @@
             const tempEditorDiv = document.createElement('div');
             tempEditorDiv.innerHTML = document.querySelector('.ql-editor').innerHTML;
             
-            // 選択枠やエディタ専用ボタンのクリーンアップ
             tempEditorDiv.querySelectorAll('.selected-img').forEach(el => el.classList.remove('selected-img'));
             tempEditorDiv.querySelectorAll('.editor-copy-btn').forEach(el => el.remove());
             
@@ -1159,7 +1272,7 @@
         .img-align-right { float: right; margin: 0 0 16px 20px !important; max-width: 50% !important; }
         .img-align-center { display: block; margin: 16px auto !important; clear: both; }
 
-        /* 出力用コードブロック: 4行制限 ＋ 右上コピーボタン */
+        /* 出力用コードブロック */
         .code-block-wrapper {
             position: relative;
             margin-bottom: 24px;
@@ -1173,7 +1286,7 @@
             font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
             font-size: 14px;
             line-height: 1.5;
-            max-height: 110px; /* 約4行分 */
+            max-height: 110px;
             margin: 0;
             border: 1px solid #e1e4e8;
         }
@@ -1194,31 +1307,58 @@
         .main-article blockquote { border-left: 4px solid #2cb696; padding-left: 16px; color: #666; margin: 0 0 24px; }
         .main-article ul, .main-article ol { margin-bottom: 24px; padding-left: 24px; }
         
-        /* 出力用添付ファイルカード */
+        /* 出力用データ添付カード (参考画像スタイル) */
         .file-attachment-card {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            background: #f8f9fa;
-            border: 1px solid #e0e0e0;
+            background: #1e252a;
+            border: 1px solid #343d46;
             border-radius: 8px;
-            padding: 12px 16px;
-            margin: 16px 0;
-            max-width: 480px;
+            padding: 20px 24px;
+            margin: 20px 0;
+            width: 100%;
+            box-sizing: border-box;
+            user-select: none;
         }
-        .file-icon { font-size: 24px; margin-right: 12px; }
-        .file-details { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .file-name { font-size: 14px; font-weight: bold; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .file-size { font-size: 12px; color: #777; }
+        .file-info-side {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .file-info-side .file-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffffff;
+            word-break: break-all;
+        }
+        .file-info-side .file-size {
+            font-size: 13px;
+            color: #8c9ba5;
+        }
+        .file-info-side .file-desc {
+            font-size: 13px;
+            color: #8c9ba5;
+        }
         .file-download-btn {
-            background: #2cb696;
-            color: #fff !important;
+            background: #ffffff;
+            color: #1e252a !important;
             border: none;
-            padding: 6px 14px;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
             font-weight: bold;
-            margin-left: 12px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s, opacity 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .file-download-btn:hover {
+            background: #e6e6e6;
+            opacity: 0.95;
         }
 
         /* 画像拡大モーダル */
@@ -1267,6 +1407,10 @@
         /* Base64ファイル安全ダウンロード処理 */
         function downloadBase64File(base64Data, fileName) {
             try {
+                if (!base64Data) {
+                    alert('ファイルデータが存在しません。');
+                    return;
+                }
                 const arr = base64Data.split(',');
                 const mimeMatch = arr[0].match(/:(.*?);/);
                 const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
