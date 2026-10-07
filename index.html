@@ -32,7 +32,9 @@
 
         /* 左サイドバー（目次） */
         .sidebar {
-            width: 260px;
+            width: 280px;
+            min-width: 200px;
+            max-width: 500px;
             background-color: var(--bg-sidebar);
             border-right: 1px solid #333;
             padding: 24px;
@@ -40,6 +42,7 @@
             display: flex;
             flex-direction: column;
             overflow-y: auto;
+            resize: horizontal;
         }
         
         .sidebar-title {
@@ -60,17 +63,31 @@
             font-size: 13px;
         }
 
+        /* エディタ側 目次スタイル */
         .toc-h2, .toc-h3 {
             cursor: pointer;
-            color: var(--text-muted);
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             line-height: 1.4;
             transition: color 0.2s;
+            word-break: break-all;
         }
 
-        .toc-h2:hover, .toc-h3:hover { color: #fff; }
-        .toc-h2 { font-size: 14px; font-weight: bold; }
-        .toc-h3 { font-size: 13px; margin-left: 16px; }
+        .toc-h2 {
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+            border-left: 3px solid var(--accent);
+            padding-left: 8px;
+            margin-top: 12px;
+        }
+
+        .toc-h3 {
+            font-size: 12px;
+            color: var(--text-muted);
+            padding-left: 18px;
+        }
+
+        .toc-h2:hover, .toc-h3:hover { color: var(--accent); }
 
         /* メインエディタエリア */
         .main-content {
@@ -79,6 +96,9 @@
             flex-direction: column;
             overflow-y: auto;
             position: relative;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
 
         .top-bar {
@@ -87,6 +107,9 @@
             align-items: center;
             padding: 16px 40px;
             cursor: default;
+            background: rgba(36, 43, 46, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 10;
         }
 
         .top-bar-right button {
@@ -113,6 +136,63 @@
             box-sizing: border-box;
             position: relative;
         }
+
+        /* サムネイル画像スタイル */
+        .thumbnail-picker {
+            margin-bottom: 20px;
+        }
+        .btn-add-thumb {
+            width: 100%;
+            height: 120px;
+            border: 2px dashed #444;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-muted);
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn-add-thumb:hover {
+            border-color: var(--accent);
+            color: #fff;
+            background: rgba(44, 182, 150, 0.05);
+        }
+        .thumbnail-preview-box {
+            position: relative;
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .thumbnail-preview-box img {
+            width: 100%;
+            height: auto;
+            display: block;
+            aspect-ratio: 1280 / 670;
+            object-fit: cover;
+        }
+        .thumb-actions {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            gap: 8px;
+        }
+        .thumb-actions button {
+            background: rgba(0,0,0,0.7);
+            border: 1px solid #666;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .thumb-actions button:hover { background: #e74c3c; border-color: #e74c3c; }
 
         .title-input {
             width: 100%;
@@ -148,6 +228,42 @@
         .ql-editor h2 { font-size: 24px; margin: 48px 0 16px; color: #fff; border-bottom: 1px solid #444; padding-bottom: 8px;}
         .ql-editor h3 { font-size: 20px; margin: 32px 0 16px; color: #eee; }
         
+        /* エディタ内コードブロックの4行制限＋スタイル */
+        .ql-editor pre {
+            background: #181c1f;
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+            overflow-y: auto;
+            font-family: SFMono-Regular, Consolas, monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            max-height: 110px; /* 約4行分 */
+            margin-bottom: 24px;
+            position: relative;
+            border: 1px solid #333;
+        }
+
+        .editor-copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #2a3236;
+            border: 1px solid #555;
+            color: #ccc;
+            border-radius: 4px;
+            padding: 3px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            z-index: 10;
+            user-select: none;
+        }
+        .editor-copy-btn:hover {
+            background: #3a444a;
+            color: #fff;
+            border-color: var(--accent);
+        }
+
         /* 画像配置スタイル */
         .ql-editor img {
             max-width: 100%;
@@ -160,15 +276,41 @@
             outline: 3px solid var(--accent);
         }
 
-        /* 回り込みCSSクラス */
         .img-align-left { float: left; margin: 0 20px 16px 0 !important; max-width: 50% !important; }
         .img-align-right { float: right; margin: 0 0 16px 20px !important; max-width: 50% !important; }
         .img-align-center { display: block; margin: 16px auto !important; clear: both; }
         .img-align-full { display: block; width: 100% !important; margin: 16px 0 !important; clear: both; }
 
         .ql-editor blockquote { border-left: 4px solid var(--accent); padding-left: 16px; color: var(--text-muted); margin: 0 0 24px; }
-        .ql-editor pre { background: #181c1f; padding: 16px; border-radius: 6px; overflow-x: auto; font-family: monospace; margin-bottom: 24px; }
         .ql-editor ul, .ql-editor ol { margin-bottom: 24px; padding-left: 24px; }
+
+        /* 添付ファイルカード */
+        .file-attachment-card {
+            display: flex;
+            align-items: center;
+            background: #2a3236;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 16px 0;
+            max-width: 480px;
+            user-select: none;
+        }
+        .file-icon { font-size: 24px; margin-right: 12px; }
+        .file-details { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .file-name { font-size: 14px; font-weight: bold; color: #eee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .file-size { font-size: 12px; color: var(--text-muted); }
+        .file-download-btn {
+            background: var(--accent);
+            color: #fff !important;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 12px;
+            cursor: pointer;
+        }
 
         /* プラスボタン */
         .plus-btn {
@@ -249,7 +391,7 @@
         .img-toolbar button:hover { background: #3a444a; color: #fff; }
         .img-toolbar .danger:hover { background: #e74c3c; color: #fff; }
 
-        /* クロップダイアログ（モーダル） */
+        /* クロップダイアログ */
         .crop-modal {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -329,6 +471,8 @@
         <header class="top-bar">
             <div class="top-bar-right">
                 <span id="char-count" style="color: var(--text-muted); font-size: 13px; margin-right: 16px;">0 文字</span>
+                <button onclick="triggerBgUpload()" title="背景画像を設定">🖼️ 背景画像</button>
+                <button id="btn-remove-bg" onclick="removeBg()" style="display:none; color:#e74c3c; border-color:#e74c3c;">背景解除</button>
                 <button onclick="clearEditor()" title="入力内容を全てリセットします" style="color: #e74c3c; border-color: #e74c3c;">クリア</button>
                 <button class="primary" onclick="exportHTML()">公開に進む (HTML出力)</button>
             </div>
@@ -336,6 +480,19 @@
 
         <!-- エディタ本体 -->
         <div class="editor-wrapper" id="editor-wrapper">
+            <div class="thumbnail-picker">
+                <button id="btn-add-thumb" class="btn-add-thumb" onclick="triggerThumbnailUpload()">
+                    🖼️ サムネイル画像を設定 (1280×670px)
+                </button>
+                <div id="thumb-preview-box" class="thumbnail-preview-box">
+                    <img id="thumb-img" src="" alt="Thumbnail">
+                    <div class="thumb-actions">
+                        <button onclick="triggerThumbnailUpload()">変更</button>
+                        <button onclick="removeThumbnail()">削除</button>
+                    </div>
+                </div>
+            </div>
+
             <input type="text" id="doc-title" class="title-input" placeholder="記事タイトル">
             
             <div style="position: relative;">
@@ -344,6 +501,7 @@
                 <div id="insert-menu" class="insert-menu">
                     <div class="menu-label">挿入</div>
                     <div class="menu-item" onmousedown="insertImage(event)"><i>🖼️</i> 画像</div>
+                    <div class="menu-item" onmousedown="triggerFileUpload(event)"><i>📎</i> ファイル添付 (.zip, .py...)</div>
                     <div class="menu-item" onmousedown="formatText(event, 'header', 2)"><i>H2</i> 大見出し</div>
                     <div class="menu-item" onmousedown="formatText(event, 'header', 3)"><i>H3</i> 小見出し</div>
                     <div class="menu-item" onmousedown="formatText(event, 'list', 'bullet')"><i>≡</i> 箇条書きリスト</div>
@@ -381,8 +539,11 @@
         </div>
     </div>
 
-    <!-- 非表示の入力フォーム -->
+    <!-- 非表示の入力フォーム類 -->
     <input type="file" id="image-upload" accept="image/*" style="display: none;">
+    <input type="file" id="thumbnail-upload" accept="image/*" style="display: none;">
+    <input type="file" id="bg-upload" accept="image/*" style="display: none;">
+    <input type="file" id="file-attachment-upload" style="display: none;">
     
     <!-- トースト通知 -->
     <div id="toast" class="toast">処理が完了しました</div>
@@ -411,6 +572,10 @@
         let activeImage = null;
         let cropper = null;
 
+        let currentThumbnailData = null;
+        let currentBgData = null;
+        let isThumbnailCrop = false;
+
         let toastTimeout;
         function showToast(message) {
             const toast = document.getElementById('toast');
@@ -420,6 +585,163 @@
             toastTimeout = setTimeout(() => {
                 toast.classList.remove('show');
             }, 3000);
+        }
+
+        /* 共通：Base64データをBlob化して確実ダウンロード */
+        function downloadBase64File(base64Data, fileName) {
+            try {
+                const arr = base64Data.split(',');
+                const mimeMatch = arr[0].match(/:(.*?);/);
+                const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+                const bstr = atob(arr[1]);
+                let n = bstr.length;
+                const u8arr = new Uint8Array(n);
+                while (n--) {
+                    u8arr[n] = bstr.charCodeAt(n);
+                }
+                const blob = new Blob([u8arr], { type: mime });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                alert('ファイルのダウンロードに失敗しました。');
+            }
+        }
+
+        /* サムネイル管理 */
+        function triggerThumbnailUpload() {
+            document.getElementById('thumbnail-upload').click();
+        }
+
+        document.getElementById('thumbnail-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                openCropModalForImage(event.target.result, true);
+            };
+            reader.readAsDataURL(file);
+            e.target.value = '';
+        });
+
+        function setThumbnailData(dataUrl) {
+            currentThumbnailData = dataUrl;
+            document.getElementById('thumb-img').src = dataUrl;
+            document.getElementById('thumb-preview-box').style.display = 'block';
+            document.getElementById('btn-add-thumb').style.display = 'none';
+        }
+
+        function removeThumbnail() {
+            currentThumbnailData = null;
+            document.getElementById('thumb-preview-box').style.display = 'none';
+            document.getElementById('btn-add-thumb').style.display = 'flex';
+        }
+
+        /* 背景画像管理 */
+        function triggerBgUpload() {
+            document.getElementById('bg-upload').click();
+        }
+
+        document.getElementById('bg-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                setBgData(event.target.result);
+                showToast('背景画像を設定しました');
+            };
+            reader.readAsDataURL(file);
+            e.target.value = '';
+        });
+
+        function setBgData(dataUrl) {
+            currentBgData = dataUrl;
+            document.getElementById('main-content').style.backgroundImage = `url('${dataUrl}')`;
+            document.getElementById('btn-remove-bg').style.display = 'inline-block';
+        }
+
+        function removeBg() {
+            currentBgData = null;
+            document.getElementById('main-content').style.backgroundImage = 'none';
+            document.getElementById('btn-remove-bg').style.display = 'none';
+            showToast('背景画像を解除しました');
+        }
+
+        /* 添付ファイル追加処理 */
+        function triggerFileUpload(e) {
+            e.preventDefault();
+            insertMenu.style.display = 'none';
+            document.getElementById('file-attachment-upload').click();
+        }
+
+        document.getElementById('file-attachment-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const fileData = event.target.result;
+                const fileName = file.name;
+                const fileSize = formatBytes(file.size);
+
+                const index = currentRange ? currentRange.index : quill.getLength();
+
+                const fileCardHTML = `
+                    <div class="file-attachment-card" data-filename="${fileName}" data-filesize="${fileSize}" data-filedata="${fileData}" contenteditable="false">
+                        <div class="file-icon">📎</div>
+                        <div class="file-details">
+                            <span class="file-name">${fileName}</span>
+                            <span class="file-size">${fileSize}</span>
+                        </div>
+                        <button type="button" class="file-download-btn" onclick="downloadBase64File(this.parentElement.getAttribute('data-filedata'), this.parentElement.getAttribute('data-filename'))">ダウンロード</button>
+                    </div>
+                    <p><br></p>
+                `;
+
+                quill.clipboard.dangerouslyPasteHTML(index, fileCardHTML);
+                showToast('ファイルを添付しました');
+            };
+            reader.readAsDataURL(file);
+            e.target.value = '';
+        });
+
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        /* エディタ内コードブロックへのコピーボタン挿入制御 */
+        function updateEditorCodeBlocks() {
+            document.querySelectorAll('.ql-editor pre').forEach(pre => {
+                if (!pre.querySelector('.editor-copy-btn')) {
+                    const btn = document.createElement('button');
+                    btn.className = 'editor-copy-btn';
+                    btn.textContent = 'コピー';
+                    btn.setAttribute('contenteditable', 'false');
+                    btn.onclick = function(e) {
+                        e.stopPropagation();
+                        // コピーボタンを除外した純粋なテキストを取得
+                        const clone = pre.cloneNode(true);
+                        const btnInClone = clone.querySelector('.editor-copy-btn');
+                        if (btnInClone) btnInClone.remove();
+                        
+                        navigator.clipboard.writeText(clone.textContent.trim()).then(() => {
+                            btn.textContent = 'コピーしました!';
+                            setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+                        });
+                    };
+                    pre.appendChild(btn);
+                }
+            });
         }
 
         /* 画像クリック時のツールバー制御 */
@@ -443,7 +765,7 @@
             const toolbarHeight = imgToolbar.offsetHeight;
             
             let top = imgRect.top - mainRect.top - toolbarHeight - 8;
-            if (top < 10) top = imgRect.bottom - mainRect.top + 8; // 上に入らない場合は下に配置
+            if (top < 10) top = imgRect.bottom - mainRect.top + 8;
 
             imgToolbar.style.top = top + 'px';
             imgToolbar.style.left = Math.max(10, imgRect.left - mainRect.left) + 'px';
@@ -455,7 +777,6 @@
             imgToolbar.style.display = 'none';
         }
 
-        /* 画像の配置切り替え（左回り込み・中央・右回り込み） */
         function setImgAlign(align) {
             if (!activeImage) return;
             activeImage.classList.remove('img-align-left', 'img-align-right', 'img-align-center', 'img-align-full');
@@ -465,7 +786,6 @@
             positionImgToolbar(activeImage);
         }
 
-        /* 段落単位でのワンクリック上下移動（ドラッグによる崩れ防止） */
         function moveImgBlock(direction) {
             if (!activeImage) return;
             const blot = Quill.find(activeImage);
@@ -483,7 +803,6 @@
             setTimeout(() => positionImgToolbar(activeImage), 20);
         }
 
-        /* 画像の削除 */
         function deleteImg() {
             if (!activeImage) return;
             const blot = Quill.find(activeImage);
@@ -493,19 +812,25 @@
             hideImgToolbar();
         }
 
-        /* トリミング（Cropper.js）モーダル制御 */
+        /* Cropper.js モーダル統合管理 */
         function openCropModal() {
             if (!activeImage) return;
+            openCropModalForImage(activeImage.src, false);
+        }
+
+        function openCropModalForImage(imgSrc, isThumb = false) {
+            isThumbnailCrop = isThumb;
             const cropModal = document.getElementById('crop-modal');
             const targetImg = document.getElementById('crop-target-img');
             
-            targetImg.src = activeImage.src;
+            targetImg.src = imgSrc;
             cropModal.style.display = 'flex';
             
             if (cropper) cropper.destroy();
             cropper = new Cropper(targetImg, {
                 viewMode: 1,
-                autoCropArea: 0.8,
+                aspectRatio: isThumb ? (1280 / 670) : NaN,
+                autoCropArea: 0.9,
                 background: false
             });
         }
@@ -519,51 +844,27 @@
         }
 
         function applyCrop() {
-            if (!cropper || !activeImage) return;
+            if (!cropper) return;
             const canvas = cropper.getCroppedCanvas();
-            activeImage.src = canvas.toDataURL();
+            const croppedData = canvas.toDataURL();
+
+            if (isThumbnailCrop) {
+                setThumbnailData(croppedData);
+                showToast('サムネイルを設定しました');
+            } else if (activeImage) {
+                activeImage.src = croppedData;
+                hideImgToolbar();
+                showToast('画像をトリミングしました');
+            }
             closeCropModal();
-            hideImgToolbar();
-            showToast('画像をトリミングしました');
         }
 
-        /* スクロール時にツールバーの位置を追従 */
         document.getElementById('main-content').addEventListener('scroll', () => {
             if (activeImage) positionImgToolbar(activeImage);
         });
 
-        /* クリップボードからの画像貼り付け処理 */
-        quill.root.addEventListener('paste', function(e) {
-            if (e.clipboardData && e.clipboardData.items) {
-                let hasImage = false;
-                const range = quill.getSelection();
-                let insertIndex = range ? range.index : lastSelectionIndex;
-
-                for (let i = 0; i < e.clipboardData.items.length; i++) {
-                    if (e.clipboardData.items[i].type.indexOf('image') !== -1) {
-                        hasImage = true;
-                        const file = e.clipboardData.items[i].getAsFile();
-                        const reader = new FileReader();
-                        reader.onload = function(event) {
-                            quill.insertEmbed(insertIndex, 'image', event.target.result);
-                            insertIndex++;
-                            setTimeout(() => {
-                                quill.setSelection(insertIndex);
-                                lastSelectionIndex = insertIndex;
-                            }, 10);
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                }
-                if (hasImage) e.preventDefault();
-            }
-        });
-
-        /* HTMLファイルのドラッグ＆ドロップ読み込み処理 */
-        window.addEventListener('dragover', function(e) {
-            e.preventDefault();
-        });
-
+        /* D&D 読み込み処理 */
+        window.addEventListener('dragover', e => e.preventDefault());
         window.addEventListener('drop', function(e) {
             e.preventDefault();
             const files = e.dataTransfer.files;
@@ -589,21 +890,28 @@
                 
                 const rawDataEl = doc.getElementById('editor-raw-data');
                 if (rawDataEl) {
-                    const rawContent = decodeURIComponent(rawDataEl.textContent);
-                    document.querySelector('.ql-editor').innerHTML = rawContent;
+                    const rawText = decodeURIComponent(rawDataEl.textContent);
+                    try {
+                        const rawObj = JSON.parse(rawText);
+                        document.querySelector('.ql-editor').innerHTML = rawObj.content || '';
+                        if (rawObj.thumbnail) setThumbnailData(rawObj.thumbnail); else removeThumbnail();
+                        if (rawObj.bgImage) setBgData(rawObj.bgImage); else removeBg();
+                    } catch(err) {
+                        document.querySelector('.ql-editor').innerHTML = rawText;
+                        removeThumbnail();
+                        removeBg();
+                    }
                 } else {
                     const article = doc.querySelector('.main-article');
                     if (article) {
                         const h1 = article.querySelector('h1.title');
                         if (h1) h1.remove();
                         document.querySelector('.ql-editor').innerHTML = article.innerHTML;
-                    } else {
-                        alert('対応していないHTMLファイルです。');
-                        return;
                     }
                 }
                 updateCharCount();
                 updateTOC();
+                updateEditorCodeBlocks();
                 showToast('ファイルを読み込みました');
             };
             reader.readAsText(file);
@@ -645,6 +953,7 @@
                     updateTOC();
                     updateCharCount();
                 }
+                updateEditorCodeBlocks();
                 setTimeout(updatePlusBtnPosition, 10);
             }
         });
@@ -748,17 +1057,25 @@
             const tempEditorDiv = document.createElement('div');
             tempEditorDiv.innerHTML = document.querySelector('.ql-editor').innerHTML;
             
-            // 出力用HTML向けに選択枠等をクリーンアップ
+            // 選択枠やエディタ専用ボタンのクリーンアップ
             tempEditorDiv.querySelectorAll('.selected-img').forEach(el => el.classList.remove('selected-img'));
+            tempEditorDiv.querySelectorAll('.editor-copy-btn').forEach(el => el.remove());
             
             const content = tempEditorDiv.innerHTML;
-            const encodedRawContent = encodeURIComponent(content);
+            
+            const rawDataObj = {
+                content: content,
+                thumbnail: currentThumbnailData,
+                bgImage: currentBgData
+            };
+            const encodedRawContent = encodeURIComponent(JSON.stringify(rawDataObj));
             
             let tocHTML = '';
             document.querySelectorAll('#toc-list li').forEach(li => {
                 if(!li.classList.contains('toc-empty')) {
                     const isH3 = li.className === 'toc-h3';
-                    tocHTML += `<div style="margin-bottom:8px; font-size: ${isH3 ? '14px' : '15px'}; padding-left: ${isH3 ? '16px' : '0'};"><a href="#${li.textContent}" style="color:#555; text-decoration:none;" onclick="event.preventDefault(); document.getElementById('${li.textContent}').scrollIntoView({behavior: 'smooth'});">${li.textContent}</a></div>`;
+                    const itemClass = isH3 ? 'toc-h3-item' : 'toc-h2-item';
+                    tocHTML += `<div class="${itemClass}"><a href="#${li.textContent}" onclick="event.preventDefault(); document.getElementById('${li.textContent}').scrollIntoView({behavior: 'smooth'});">${li.textContent}</a></div>`;
                 }
             });
 
@@ -777,16 +1094,30 @@
     <title>${title}</title>
     <script id="editor-raw-data" type="text/plain">${encodedRawContent}<\/script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; color: #333; background: #fcfcfc; line-height: 1.8; margin: 0; padding: 0; display: flex; justify-content: center; }
-        .content-wrapper { display: flex; max-width: 1000px; width: 100%; margin-top: 40px; padding: 0 20px; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+            color: #333;
+            background-color: #fcfcfc;
+            ${currentBgData ? `background-image: url('${currentBgData}'); background-size: cover; background-attachment: fixed; background-position: center;` : ''}
+            line-height: 1.8;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+        .content-wrapper { display: flex; max-width: 1040px; width: 100%; margin-top: 40px; padding: 0 20px; }
         
-        .main-article { flex: 1; max-width: 680px; background: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .main-article { flex: 1; max-width: 680px; background: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        
+        .thumb-wrapper { width: 100%; margin-bottom: 24px; border-radius: 8px; overflow: hidden; }
+        .thumb-wrapper img { width: 100%; height: auto; aspect-ratio: 1280 / 670; object-fit: cover; display: block; }
+
         h1.title { font-size: 32px; margin-bottom: 32px; font-weight: bold; border-bottom: 2px solid #eee; padding-bottom: 16px; }
         
-        .sidebar { width: 220px; margin-left: 40px; }
-        /* ★目次ボックス自体が画面内に固定され、溢れた場合に独立してスクロールできるように指定 */
+        .sidebar { width: 280px; margin-left: 30px; resize: horizontal; overflow: auto; }
+        
         .toc-box {
-            background: #f9f9f9;
+            background: #f8f9fa;
             padding: 20px;
             border-radius: 8px;
             position: sticky;
@@ -794,25 +1125,103 @@
             max-height: calc(100vh - 80px);
             overflow-y: auto;
             box-sizing: border-box;
+            border: 1px solid #eee;
         }
-        .toc-title { font-weight: bold; margin-bottom: 16px; font-size: 16px; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 8px;}
+        .toc-title { font-weight: bold; margin-bottom: 16px; font-size: 16px; color: #222; border-bottom: 2px solid #2cb696; padding-bottom: 6px;}
         
+        .toc-h2-item {
+            margin-top: 10px;
+            margin-bottom: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            border-left: 3px solid #2cb696;
+            padding-left: 8px;
+        }
+        .toc-h2-item a { color: #1a252c !important; }
+
+        .toc-h3-item {
+            margin-top: 2px;
+            margin-bottom: 2px;
+            font-size: 12px;
+            padding-left: 18px;
+        }
+        .toc-h3-item a { color: #68778d !important; }
+        .toc-box a { text-decoration: none; display: block; line-height: 1.5; word-break: break-all; transition: color 0.2s; }
+        .toc-box a:hover { color: #2cb696 !important; }
+
         .main-article p { margin-bottom: 8px; }
         .main-article h2 { font-size: 24px; margin-top: 48px; margin-bottom: 16px; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px; scroll-margin-top: 20px; }
         .main-article h3 { font-size: 20px; margin-top: 32px; margin-bottom: 16px; scroll-margin-top: 20px; }
         
-        /* 書き出した記事内でも画像の配置スタイル（回り込み等）をそのまま保持 */
         .main-article img { max-width: 100%; border-radius: 4px; border: 1px solid #eee; margin: 12px 0; cursor: zoom-in; transition: opacity 0.2s; }
         .main-article img:hover { opacity: 0.85; }
         .img-align-left { float: left; margin: 0 20px 16px 0 !important; max-width: 50% !important; }
         .img-align-right { float: right; margin: 0 0 16px 20px !important; max-width: 50% !important; }
         .img-align-center { display: block; margin: 16px auto !important; clear: both; }
 
-        .main-article pre { background: #f4f6f8; padding: 16px; overflow-x: auto; border-radius: 8px; font-family: monospace; margin-bottom: 24px; }
+        /* 出力用コードブロック: 4行制限 ＋ 右上コピーボタン */
+        .code-block-wrapper {
+            position: relative;
+            margin-bottom: 24px;
+        }
+        .main-article pre {
+            background: #f4f6f8;
+            padding: 16px;
+            overflow-x: auto;
+            overflow-y: auto;
+            border-radius: 8px;
+            font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            max-height: 110px; /* 約4行分 */
+            margin: 0;
+            border: 1px solid #e1e4e8;
+        }
+        .copy-code-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .copy-code-btn:hover { background: #fff; border-color: #2cb696; color: #2cb696; }
+
         .main-article blockquote { border-left: 4px solid #2cb696; padding-left: 16px; color: #666; margin: 0 0 24px; }
         .main-article ul, .main-article ol { margin-bottom: 24px; padding-left: 24px; }
         
-        /* 画像拡大モーダル用のスタイル */
+        /* 出力用添付ファイルカード */
+        .file-attachment-card {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 16px 0;
+            max-width: 480px;
+        }
+        .file-icon { font-size: 24px; margin-right: 12px; }
+        .file-details { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .file-name { font-size: 14px; font-weight: bold; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .file-size { font-size: 12px; color: #777; }
+        .file-download-btn {
+            background: #2cb696;
+            color: #fff !important;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 12px;
+            cursor: pointer;
+        }
+
+        /* 画像拡大モーダル */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: center;
@@ -827,7 +1236,7 @@
 
         @media (max-width: 800px) {
             .content-wrapper { flex-direction: column-reverse; }
-            .sidebar { width: 100%; margin-left: 0; margin-bottom: 40px; }
+            .sidebar { width: 100%; margin-left: 0; margin-bottom: 40px; resize: none; }
             .toc-box { max-height: none; position: static; }
             .img-align-left, .img-align-right { float: none; max-width: 100% !important; margin: 12px 0 !important; }
         }
@@ -836,6 +1245,7 @@
 <body>
     <div class="content-wrapper">
         <article class="main-article">
+            ${currentThumbnailData ? `<div class="thumb-wrapper"><img src="${currentThumbnailData}" alt="Thumbnail"></div>` : ''}
             <h1 class="title">${title}</h1>
             ${updatedContent}
         </article>
@@ -848,13 +1258,39 @@
         </aside>
     </div>
 
-    <!-- 画像拡大用モーダルのHTML要素 -->
+    <!-- 画像拡大用モーダル -->
     <div id="img-modal" class="modal-overlay" onclick="closeModal()">
         <img id="modal-image" class="modal-img" src="" alt="拡大画像">
     </div>
 
-    <!-- 画像拡大処理のJavaScript -->
     <script>
+        /* Base64ファイル安全ダウンロード処理 */
+        function downloadBase64File(base64Data, fileName) {
+            try {
+                const arr = base64Data.split(',');
+                const mimeMatch = arr[0].match(/:(.*?);/);
+                const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+                const bstr = atob(arr[1]);
+                let n = bstr.length;
+                const u8arr = new Uint8Array(n);
+                while (n--) {
+                    u8arr[n] = bstr.charCodeAt(n);
+                }
+                const blob = new Blob([u8arr], { type: mime });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                alert('ファイルのダウンロードに失敗しました。');
+            }
+        }
+
+        /* 画像拡大処理 */
         document.querySelectorAll('.main-article img').forEach(img => {
             img.addEventListener('click', function() {
                 const modal = document.getElementById('img-modal');
@@ -868,10 +1304,27 @@
         function closeModal() {
             const modal = document.getElementById('img-modal');
             modal.classList.remove('show');
-            setTimeout(() => {
-                modal.style.display = 'none';
-            }, 300);
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
         }
+
+        /* コードブロックのコピーボタン設置 */
+        document.querySelectorAll('.main-article pre').forEach(pre => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'code-block-wrapper';
+            pre.parentNode.insertBefore(wrapper, pre);
+            wrapper.appendChild(pre);
+
+            const btn = document.createElement('button');
+            btn.className = 'copy-code-btn';
+            btn.textContent = 'コピー';
+            btn.onclick = function() {
+                navigator.clipboard.writeText(pre.textContent).then(() => {
+                    btn.textContent = 'コピーしました!';
+                    setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+                });
+            };
+            wrapper.appendChild(btn);
+        });
     <\/script>
 </body>
 </html>`;
@@ -887,15 +1340,14 @@
             URL.revokeObjectURL(url);
         }
 
-        /* エディタの初期化処理 */
         function clearEditor() {
             if(confirm('入力内容を全てリセットして初期状態に戻しますか？')) {
                 quill.setText('');
                 docTitle.value = '';
-                
+                removeThumbnail();
+                removeBg();
                 updateCharCount();
                 updateTOC();
-                
                 showToast('エディタを初期化しました');
             }
         }
