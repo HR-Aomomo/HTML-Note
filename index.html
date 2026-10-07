@@ -330,8 +330,6 @@
             <div class="top-bar-right">
                 <span id="char-count" style="color: var(--text-muted); font-size: 13px; margin-right: 16px;">0 文字</span>
                 <button onclick="clearEditor()" title="入力内容を全てリセットします" style="color: #e74c3c; border-color: #e74c3c;">クリア</button>
-                <button onclick="document.getElementById('import-upload').click()" title="書き出したHTMLファイルを読み込んで再編集します">ファイルを開く</button>
-                <button onclick="saveDraft()" title="ブラウザに一時的に保存します">下書き保存</button>
                 <button class="primary" onclick="exportHTML()">公開に進む (HTML出力)</button>
             </div>
         </header>
@@ -385,10 +383,9 @@
 
     <!-- 非表示の入力フォーム -->
     <input type="file" id="image-upload" accept="image/*" style="display: none;">
-    <input type="file" id="import-upload" accept=".html" style="display: none;">
     
     <!-- トースト通知 -->
-    <div id="toast" class="toast">保存しました</div>
+    <div id="toast" class="toast">処理が完了しました</div>
 
     <!-- ライブラリ読み込み -->
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
@@ -562,28 +559,25 @@
             }
         });
 
-        function saveDraft() {
-            const title = docTitle.value;
-            const content = document.querySelector('.ql-editor').innerHTML;
-            localStorage.setItem('note_draft_title', title);
-            localStorage.setItem('note_draft_content', content);
-            showToast('下書きを保存しました');
-        }
+        /* HTMLファイルのドラッグ＆ドロップ読み込み処理 */
+        window.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
 
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedContent = localStorage.getItem('note_draft_content');
-            if (savedContent) {
-                docTitle.value = localStorage.getItem('note_draft_title') || '';
-                document.querySelector('.ql-editor').innerHTML = savedContent;
-                updateCharCount();
-                updateTOC();
+        window.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.name.endsWith('.html') || file.type === 'text/html') {
+                    loadHTMLFile(file);
+                } else {
+                    alert('HTMLファイルをドロップしてください。');
+                }
             }
         });
 
-        document.getElementById('import-upload').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
+        function loadHTMLFile(file) {
             const reader = new FileReader();
             reader.onload = function(event) {
                 const htmlText = event.target.result;
@@ -613,8 +607,7 @@
                 showToast('ファイルを読み込みました');
             };
             reader.readAsText(file);
-            e.target.value = '';
-        });
+        }
 
         docTitle.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
@@ -791,7 +784,17 @@
         h1.title { font-size: 32px; margin-bottom: 32px; font-weight: bold; border-bottom: 2px solid #eee; padding-bottom: 16px; }
         
         .sidebar { width: 220px; margin-left: 40px; }
-        .toc-box { background: #f9f9f9; padding: 20px; border-radius: 8px; position: sticky; top: 40px; }
+        /* ★目次ボックス自体が画面内に固定され、溢れた場合に独立してスクロールできるように指定 */
+        .toc-box {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            position: sticky;
+            top: 40px;
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
         .toc-title { font-weight: bold; margin-bottom: 16px; font-size: 16px; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 8px;}
         
         .main-article p { margin-bottom: 8px; }
@@ -825,6 +828,7 @@
         @media (max-width: 800px) {
             .content-wrapper { flex-direction: column-reverse; }
             .sidebar { width: 100%; margin-left: 0; margin-bottom: 40px; }
+            .toc-box { max-height: none; position: static; }
             .img-align-left, .img-align-right { float: none; max-width: 100% !important; margin: 12px 0 !important; }
         }
     </style>
@@ -886,15 +890,9 @@
         /* エディタの初期化処理 */
         function clearEditor() {
             if(confirm('入力内容を全てリセットして初期状態に戻しますか？')) {
-                // エディタとタイトルを空にする
                 quill.setText('');
                 docTitle.value = '';
                 
-                // ローカルストレージの保存データを削除する
-                localStorage.removeItem('note_draft_title');
-                localStorage.removeItem('note_draft_content');
-                
-                // 文字数と目次を更新する
                 updateCharCount();
                 updateTOC();
                 
