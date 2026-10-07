@@ -799,7 +799,8 @@
         .main-article h3 { font-size: 20px; margin-top: 32px; margin-bottom: 16px; scroll-margin-top: 20px; }
         
         /* 書き出した記事内でも画像の配置スタイル（回り込み等）をそのまま保持 */
-        .main-article img { max-width: 100%; border-radius: 4px; border: 1px solid #eee; margin: 12px 0; }
+        .main-article img { max-width: 100%; border-radius: 4px; border: 1px solid #eee; margin: 12px 0; cursor: zoom-in; transition: opacity 0.2s; }
+        .main-article img:hover { opacity: 0.85; }
         .img-align-left { float: left; margin: 0 20px 16px 0 !important; max-width: 50% !important; }
         .img-align-right { float: right; margin: 0 0 16px 20px !important; max-width: 50% !important; }
         .img-align-center { display: block; margin: 16px auto !important; clear: both; }
@@ -808,6 +809,19 @@
         .main-article blockquote { border-left: 4px solid #2cb696; padding-left: 16px; color: #666; margin: 0 0 24px; }
         .main-article ul, .main-article ol { margin-bottom: 24px; padding-left: 24px; }
         
+        /* 画像拡大モーダル用のスタイル */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: center;
+            z-index: 10000; opacity: 0; transition: opacity 0.3s ease; cursor: zoom-out;
+        }
+        .modal-overlay.show { opacity: 1; }
+        .modal-img {
+            max-width: 90vw; max-height: 90vh; border-radius: 4px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5); transform: scale(0.95); transition: transform 0.3s ease;
+        }
+        .modal-overlay.show .modal-img { transform: scale(1); }
+
         @media (max-width: 800px) {
             .content-wrapper { flex-direction: column-reverse; }
             .sidebar { width: 100%; margin-left: 0; margin-bottom: 40px; }
@@ -829,6 +843,32 @@
             </div>
         </aside>
     </div>
+
+    <!-- 画像拡大用モーダルのHTML要素 -->
+    <div id="img-modal" class="modal-overlay" onclick="closeModal()">
+        <img id="modal-image" class="modal-img" src="" alt="拡大画像">
+    </div>
+
+    <!-- 画像拡大処理のJavaScript -->
+    <script>
+        document.querySelectorAll('.main-article img').forEach(img => {
+            img.addEventListener('click', function() {
+                const modal = document.getElementById('img-modal');
+                const modalImg = document.getElementById('modal-image');
+                modalImg.src = this.src;
+                modal.style.display = 'flex';
+                setTimeout(() => modal.classList.add('show'), 10);
+            });
+        });
+
+        function closeModal() {
+            const modal = document.getElementById('img-modal');
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+    <\/script>
 </body>
 </html>`;
 
