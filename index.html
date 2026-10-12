@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>社内仕様書エディタ (note風 ダークモード)</title>
     <!-- Quill.js Core -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.core.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.6/quill.core.css" rel="stylesheet" onerror="this.onerror=null;this.href='https://cdn.jsdelivr.net/npm/quill@1.3.6/dist/quill.core.css'">
     <!-- Cropper.js (画像トリミングライブラリ) -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     <style>
@@ -32,9 +32,8 @@
 
         /* 左サイドバー（目次） */
         .sidebar {
-            width: 280px;
-            min-width: 200px;
-            max-width: 500px;
+            width: var(--sidebar-width, 280px);
+            flex: 0 0 auto;
             background-color: var(--bg-sidebar);
             border-right: 1px solid #333;
             padding: 24px;
@@ -42,8 +41,22 @@
             display: flex;
             flex-direction: column;
             overflow-y: auto;
-            resize: horizontal;
         }
+
+        /* 目次幅のドラッグ調整ハンドル */
+        .sidebar-resizer {
+            flex: 0 0 5px;
+            cursor: col-resize;
+            background: transparent;
+            transition: background 0.2s;
+            touch-action: none;
+            outline: none;
+            z-index: 20;
+        }
+        .sidebar-resizer:hover,
+        .sidebar-resizer:focus-visible,
+        body.resizing .sidebar-resizer { background: var(--accent); }
+        body.resizing { user-select: none; cursor: col-resize; }
         
         .sidebar-title {
             font-size: 16px;
@@ -488,6 +501,7 @@
             <li class="toc-empty">見出しを設定すると表示されます</li>
         </ul>
     </aside>
+    <div id="sidebar-resizer" class="sidebar-resizer" role="separator" aria-orientation="vertical" aria-label="目次の幅を調整" tabindex="0" title="ドラッグで目次の幅を調整(ダブルクリックでリセット)"></div>
 
     <!-- メインエリア -->
     <main class="main-content" id="main-content">
@@ -573,8 +587,24 @@
     <div id="toast" class="toast">処理が完了しました</div>
 
     <!-- ライブラリ読み込み -->
-    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.6/quill.min.js"></script>
+    <script>
+        /* cdnjsから読めない場合はjsDelivrに切り替え */
+        if (typeof Quill === 'undefined') {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/quill@1.3.6/dist/quill.min.js"><\/script>');
+        }
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script>
+        if (typeof Cropper === 'undefined') {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"><\/script>');
+        }
+        if (typeof Quill === 'undefined') {
+            document.addEventListener('DOMContentLoaded', function() {
+                document.body.insertAdjacentHTML('afterbegin', '<div style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#e74c3c;color:#fff;padding:10px;text-align:center;font-size:14px;">Quillライブラリを読み込めませんでした。ネットワーク接続を確認してください。</div>');
+            });
+        }
+    </script>
 
     <script>
         function escapeHtml(str) {
@@ -729,6 +759,65 @@
             }
         }
 
+        /* クリップボードコピー (file:// 等の非セキュア環境でも動作するフォールバック付き) */
+        function copyText(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(text);
+            }
+            return new Promise((resolve, reject) => {
+                try {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    const ok = document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    ok ? resolve() : reject(new Error('copy failed'));
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        }
+
+        /* 左サイドバー(目次)の幅調整 */
+        (function() {
+            const resizer = document.getElementById('sidebar-resizer');
+            const MIN_W = 160, MAX_W = 600, DEFAULT_W = 280;
+            let width = DEFAULT_W;
+            let dragging = false;
+
+            function apply() {
+                const w = Math.round(Math.max(MIN_W, Math.min(MAX_W, window.innerWidth - 400, width)));
+                document.documentElement.style.setProperty('--sidebar-width', w + 'px');
+            }
+            resizer.addEventListener('pointerdown', e => {
+                dragging = true;
+                resizer.setPointerCapture(e.pointerId);
+                document.body.classList.add('resizing');
+                e.preventDefault();
+            });
+            resizer.addEventListener('pointermove', e => {
+                if (!dragging) return;
+                width = e.clientX;
+                apply();
+            });
+            const end = () => {
+                dragging = false;
+                document.body.classList.remove('resizing');
+            };
+            resizer.addEventListener('pointerup', end);
+            resizer.addEventListener('pointercancel', end);
+            resizer.addEventListener('dblclick', () => { width = DEFAULT_W; apply(); });
+            resizer.addEventListener('keydown', e => {
+                if (e.key === 'ArrowLeft') { width = document.querySelector('.sidebar').offsetWidth - 16; apply(); e.preventDefault(); }
+                if (e.key === 'ArrowRight') { width = document.querySelector('.sidebar').offsetWidth + 16; apply(); e.preventDefault(); }
+            });
+            window.addEventListener('resize', apply);
+            apply();
+        })();
+
         /* サムネイル管理 */
         function triggerThumbnailUpload() {
             document.getElementById('thumbnail-upload').click();
@@ -844,10 +933,10 @@
                         const btnInClone = clone.querySelector('.editor-copy-btn');
                         if (btnInClone) btnInClone.remove();
                         
-                        navigator.clipboard.writeText(clone.textContent.trim()).then(() => {
+                        copyText(clone.textContent.trim()).then(() => {
                             btn.textContent = 'コピーしました!';
                             setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
-                        });
+                        }).catch(() => showToast('コピーに失敗しました'));
                     };
                     pre.appendChild(btn);
                 }
@@ -1060,7 +1149,7 @@
             }
             if (eventName === 'selection-change' || eventName === 'text-change') {
                 if (eventName === 'text-change') {
-                    updateTOC();
+                    scheduleTOC();
                     updateCharCount();
                 }
                 updateEditorCodeBlocks();
@@ -1139,6 +1228,16 @@
             charCount.textContent = count + ' 文字';
         }
 
+        let tocScheduled = false;
+        function scheduleTOC() {
+            if (tocScheduled) return;
+            tocScheduled = true;
+            requestAnimationFrame(() => {
+                tocScheduled = false;
+                updateTOC();
+            });
+        }
+
         function updateTOC() {
             tocList.innerHTML = '';
             const editorNodes = document.querySelector('.ql-editor').childNodes;
@@ -1183,28 +1282,26 @@
             };
             const encodedRawContent = encodeURIComponent(JSON.stringify(rawDataObj));
             
-            let tocHTML = '';
-            document.querySelectorAll('#toc-list li').forEach(li => {
-                if(!li.classList.contains('toc-empty')) {
-                    const isH3 = li.className === 'toc-h3';
-                    const itemClass = isH3 ? 'toc-h3-item' : 'toc-h2-item';
-                    tocHTML += `<div class="${itemClass}"><a href="#${li.textContent}" onclick="event.preventDefault(); document.getElementById('${li.textContent}').scrollIntoView({behavior: 'smooth'});">${li.textContent}</a></div>`;
-                }
-            });
-
+            /* 見出しに連番IDを付与し、目次HTMLを生成 (特殊文字・重複見出しでも壊れない) */
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = content;
-            tempDiv.querySelectorAll('h2, h3').forEach(heading => {
-                heading.id = heading.textContent;
+            let tocHTML = '';
+            tempDiv.querySelectorAll('h2, h3').forEach((heading, i) => {
+                const id = 'sec-' + (i + 1);
+                heading.id = id;
+                const text = heading.textContent.trim() || '無題';
+                const cls = heading.tagName === 'H3' ? 'toc-h3-item' : 'toc-h2-item';
+                tocHTML += '<div class="' + cls + '"><a href="#' + id + '">' + escapeHtml(text) + '</a></div>';
             });
             const updatedContent = tempDiv.innerHTML;
+            const safeTitle = escapeHtml(title);
 
             const finalHTML = `<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${title}</title>
+    <title>${safeTitle}</title>
     <script id="editor-raw-data" type="text/plain">${encodedRawContent}<\/script>
     <style>
         body {
@@ -1218,23 +1315,29 @@
             display: flex;
             justify-content: center;
         }
-        .content-wrapper { display: flex; max-width: 1040px; width: 100%; margin-top: 40px; padding: 0 20px; }
+        .content-wrapper { display: flex; align-items: flex-start; max-width: 1080px; width: 100%; margin: 40px 0; padding: 0 20px; box-sizing: border-box; }
         
-        .main-article { flex: 1; max-width: 680px; background: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .main-article { flex: 1; min-width: 0; max-width: 680px; background: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
         
         .thumb-wrapper { width: 100%; margin-bottom: 24px; border-radius: 8px; overflow: hidden; }
         .thumb-wrapper img { width: 100%; height: auto; aspect-ratio: 1280 / 670; object-fit: cover; display: block; }
 
         h1.title { font-size: 32px; margin-bottom: 32px; font-weight: bold; border-bottom: 2px solid #eee; padding-bottom: 16px; }
         
-        .sidebar { width: 280px; margin-left: 30px; resize: horizontal; overflow: auto; }
+        html { scroll-behavior: smooth; }
+        :root { --toc-width: 280px; }
+
+        /* 目次: スクロールに追従 (sticky) + 幅調整ハンドル */
+        .sidebar { flex: 0 0 var(--toc-width); width: var(--toc-width); position: sticky; top: 40px; align-self: flex-start; }
+        .toc-resizer { flex: 0 0 30px; align-self: stretch; cursor: col-resize; position: relative; touch-action: none; outline: none; }
+        .toc-resizer::after { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; margin-left: -1.5px; border-radius: 2px; background: transparent; transition: background 0.2s; }
+        .toc-resizer:hover::after, .toc-resizer:focus-visible::after, body.resizing .toc-resizer::after { background: #2cb696; }
+        body.resizing { user-select: none; cursor: col-resize; }
         
         .toc-box {
             background: #f8f9fa;
             padding: 20px;
             border-radius: 8px;
-            position: sticky;
-            top: 40px;
             max-height: calc(100vh - 80px);
             overflow-y: auto;
             box-sizing: border-box;
@@ -1261,6 +1364,7 @@
         .toc-h3-item a { color: #68778d !important; }
         .toc-box a { text-decoration: none; display: block; line-height: 1.5; word-break: break-all; transition: color 0.2s; }
         .toc-box a:hover { color: #2cb696 !important; }
+        .toc-box a.active { color: #2cb696 !important; font-weight: bold; }
 
         .main-article p { margin-bottom: 8px; }
         .main-article h2 { font-size: 24px; margin-top: 48px; margin-bottom: 16px; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px; scroll-margin-top: 20px; }
@@ -1375,9 +1479,10 @@
         .modal-overlay.show .modal-img { transform: scale(1); }
 
         @media (max-width: 800px) {
-            .content-wrapper { flex-direction: column-reverse; }
-            .sidebar { width: 100%; margin-left: 0; margin-bottom: 40px; resize: none; }
-            .toc-box { max-height: none; position: static; }
+            .content-wrapper { flex-direction: column-reverse; align-items: stretch; }
+            .sidebar { flex: none; width: 100%; position: static; margin-bottom: 40px; }
+            .toc-resizer { display: none; }
+            .toc-box { max-height: none; }
             .img-align-left, .img-align-right { float: none; max-width: 100% !important; margin: 12px 0 !important; }
         }
     </style>
@@ -1386,12 +1491,14 @@
     <div class="content-wrapper">
         <article class="main-article">
             ${currentThumbnailData ? `<div class="thumb-wrapper"><img src="${currentThumbnailData}" alt="Thumbnail"></div>` : ''}
-            <h1 class="title">${title}</h1>
+            <h1 class="title">${safeTitle}</h1>
             ${updatedContent}
         </article>
         
+        <div class="toc-resizer" id="toc-resizer" role="separator" aria-orientation="vertical" aria-label="目次の幅を調整" tabindex="0" title="ドラッグで目次の幅を調整(ダブルクリックでリセット)"></div>
+
         <aside class="sidebar">
-            <div class="toc-box">
+            <div class="toc-box" id="toc-box">
                 <div class="toc-title">目次</div>
                 ${tocHTML || '<div style="color:#999; font-size:13px;">見出しがありません</div>'}
             </div>
@@ -1404,6 +1511,26 @@
     </div>
 
     <script>
+        /* クリップボードコピー (file:// 等でも動作するフォールバック付き) */
+        function copyText(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(text);
+            }
+            return new Promise(function(resolve, reject) {
+                try {
+                    var ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    var ok = document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    if (ok) resolve(); else reject(new Error('copy failed'));
+                } catch (err) { reject(err); }
+            });
+        }
+
         /* Base64ファイル安全ダウンロード処理 */
         function downloadBase64File(base64Data, fileName) {
             try {
@@ -1462,13 +1589,109 @@
             btn.className = 'copy-code-btn';
             btn.textContent = 'コピー';
             btn.onclick = function() {
-                navigator.clipboard.writeText(pre.textContent).then(() => {
+                copyText(pre.textContent).then(() => {
                     btn.textContent = 'コピーしました!';
+                    setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+                }).catch(() => {
+                    btn.textContent = 'コピー失敗';
                     setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
                 });
             };
             wrapper.appendChild(btn);
         });
+
+        /* Escキーで画像拡大を閉じる */
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        /* 目次: 幅調整 + 現在位置ハイライト */
+        (function() {
+            var wrap = document.querySelector('.content-wrapper');
+            var resizer = document.getElementById('toc-resizer');
+            var sidebar = document.querySelector('.sidebar');
+            var tocBox = document.getElementById('toc-box');
+            var DEFAULT_W = 280, MIN_W = 180, MAX_W = 520, MIN_ARTICLE = 360, HANDLE_W = 30;
+            var KEY = 'spec-toc-width';
+            var desired = DEFAULT_W;
+            var dragging = false;
+
+            function maxWidth() {
+                var cs = getComputedStyle(wrap);
+                var inner = wrap.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+                return Math.max(MIN_W, Math.min(MAX_W, inner - HANDLE_W - MIN_ARTICLE));
+            }
+            function apply() {
+                var w = Math.round(Math.max(MIN_W, Math.min(maxWidth(), desired)));
+                document.documentElement.style.setProperty('--toc-width', w + 'px');
+            }
+            function save() {
+                try { localStorage.setItem(KEY, String(Math.round(desired))); } catch (e) {}
+            }
+
+            try {
+                var saved = parseInt(localStorage.getItem(KEY), 10);
+                if (saved) desired = saved;
+            } catch (e) {}
+            apply();
+
+            resizer.addEventListener('pointerdown', function(e) {
+                dragging = true;
+                resizer.setPointerCapture(e.pointerId);
+                document.body.classList.add('resizing');
+                e.preventDefault();
+            });
+            resizer.addEventListener('pointermove', function(e) {
+                if (!dragging) return;
+                var cs = getComputedStyle(wrap);
+                var contentRight = wrap.getBoundingClientRect().right - parseFloat(cs.paddingRight);
+                desired = contentRight - e.clientX - HANDLE_W / 2;
+                apply();
+            });
+            function endDrag() {
+                if (!dragging) return;
+                dragging = false;
+                document.body.classList.remove('resizing');
+                save();
+            }
+            resizer.addEventListener('pointerup', endDrag);
+            resizer.addEventListener('pointercancel', endDrag);
+            resizer.addEventListener('dblclick', function() { desired = DEFAULT_W; apply(); save(); });
+            resizer.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft') { desired = sidebar.getBoundingClientRect().width + 16; }
+                else if (e.key === 'ArrowRight') { desired = sidebar.getBoundingClientRect().width - 16; }
+                else { return; }
+                apply(); save(); e.preventDefault();
+            });
+
+            var links = Array.prototype.slice.call(document.querySelectorAll('.toc-box a'));
+            var heads = links.map(function(a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+            var ticking = false, activeIdx = -1;
+
+            function updateActive() {
+                ticking = false;
+                var idx = -1;
+                for (var i = 0; i < heads.length; i++) {
+                    if (!heads[i]) continue;
+                    if (heads[i].getBoundingClientRect().top <= 80) idx = i; else break;
+                }
+                if (idx === activeIdx) return;
+                if (activeIdx >= 0) links[activeIdx].classList.remove('active');
+                activeIdx = idx;
+                if (idx < 0) return;
+                var a = links[idx];
+                a.classList.add('active');
+                var br = tocBox.getBoundingClientRect(), ar = a.getBoundingClientRect();
+                if (ar.top < br.top + 40) tocBox.scrollTop -= (br.top + 40 - ar.top);
+                else if (ar.bottom > br.bottom - 16) tocBox.scrollTop += (ar.bottom - br.bottom + 16);
+            }
+            function onScroll() {
+                if (!ticking) { ticking = true; requestAnimationFrame(updateActive); }
+            }
+            window.addEventListener('scroll', onScroll, { passive: true });
+            window.addEventListener('resize', function() { apply(); onScroll(); });
+            updateActive();
+        })();
     <\/script>
 </body>
 </html>`;
@@ -1477,7 +1700,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = title + '.html';
+            a.download = title.replace(/[\\/:*?"<>|]/g, '_') + '.html';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
