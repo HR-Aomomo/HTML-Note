@@ -9,7 +9,8 @@
     <!-- Cropper.js (画像トリミングライブラリ) -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     <style>
-        :root {
+/* === Injected style.css === */
+:root {
             --bg-sidebar: #1c2123;
             --bg-main: #242b2e;
             --text-main: #d3dbe0;
@@ -543,7 +544,63 @@
             z-index: 2000;
         }
         .toast.show { opacity: 1; }
-    </style>
+
+        /* 選択テキスト用ポップアップツールバー */
+        .selection-toolbar {
+            position: absolute;
+            display: none;
+            align-items: center;
+            gap: 2px;
+            background: #1e252a;
+            border: 1px solid #45525b;
+            border-radius: 8px;
+            padding: 4px 6px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+            z-index: 500;
+            user-select: none;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .selection-toolbar.show {
+            display: flex;
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .selection-toolbar .sel-btn {
+            background: transparent;
+            border: none;
+            color: #cbd5e1;
+            padding: 5px 7px;
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1;
+            cursor: pointer;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 26px;
+            height: 28px;
+            transition: background 0.15s, color 0.15s;
+        }
+        .selection-toolbar .sel-btn:hover {
+            background: #2cb696;
+            color: #fff;
+        }
+        .selection-toolbar .sel-btn.active {
+            background: rgba(44, 182, 150, 0.25);
+            color: var(--accent);
+            outline: 1px solid var(--accent);
+        }
+        .selection-toolbar .sel-divider {
+            width: 1px;
+            height: 16px;
+            background: #3b4750;
+            margin: 0 3px;
+        }
+
+</style>
 </head>
 <body>
 
@@ -611,6 +668,27 @@
                     <div class="menu-item" onmousedown="formatCallout(event, 'tip')"><i>💡</i> ヒントボックス</div>
                 </div>
 
+                
+                <!-- 選択テキスト用フローティングポップアップツールバー -->
+                <div id="selection-toolbar" class="selection-toolbar">
+                    <button type="button" class="sel-btn" data-action="bold" title="太字 (Ctrl+B)"><b>B</b></button>
+                    <button type="button" class="sel-btn" data-action="strike" title="取り消し線"><s>S</s></button>
+                    <button type="button" class="sel-btn" data-action="code" title="インラインコード"><code>&lt;&gt;</code></button>
+                    <span class="sel-divider"></span>
+                    <button type="button" class="sel-btn" data-action="header" data-val="2" title="大見出し (H2)">H2</button>
+                    <button type="button" class="sel-btn" data-action="header" data-val="3" title="小見出し (H3)">H3</button>
+                    <button type="button" class="sel-btn" data-action="list" data-val="bullet" title="箇条書きリスト">≡</button>
+                    <button type="button" class="sel-btn" data-action="list" data-val="ordered" title="番号付きリスト">1.</button>
+                    <button type="button" class="sel-btn" data-action="blockquote" title="引用">❞</button>
+                    <button type="button" class="sel-btn" data-action="code-block" title="コードブロック">&lt;/&gt;</button>
+                    <span class="sel-divider"></span>
+                    <button type="button" class="sel-btn" data-action="callout" data-val="note" title="注意ボックス">⚠️</button>
+                    <button type="button" class="sel-btn" data-action="callout" data-val="warning" title="警告ボックス">🚫</button>
+                    <button type="button" class="sel-btn" data-action="callout" data-val="tip" title="ヒントボックス">💡</button>
+                    <span class="sel-divider"></span>
+                    <button type="button" class="sel-btn" data-action="clear" title="書式をクリア (通常の行に戻す)">↵</button>
+                </div>
+
                 <div id="editor" placeholder="ここから書き始める..."></div>
             </div>
         </div>
@@ -672,18 +750,132 @@
         }
     </script>
 
+    
+    <!-- モジュール化されたスクリプト -->
     <script>
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
+/* === Injected globals.js === */
 
-        /* ★Quill用データ添付カスタム埋め込みコンポーネント (FileAttachmentBlot) の定義と登録 */
+// 共通のグローバル変数
+let currentRange = null;
+let lastSelectionIndex = 0;
+let activeImage = null;
+let cropper = null;
+let currentThumbnailData = null;
+let currentBgData = null;
+let isThumbnailCrop = false;
+let toastTimeout;
+
+// DOM要素の参照 (Scriptsはbodyの最後に読み込まれるためここで取得可能)
+const plusBtn = document.getElementById('plus-btn');
+const insertMenu = document.getElementById('insert-menu');
+const tocList = document.getElementById('toc-list');
+const charCount = document.getElementById('char-count');
+const docTitle = document.getElementById('doc-title');
+const imgToolbar = document.getElementById('img-toolbar');
+const docVersion = document.getElementById('doc-version');
+const docDate = document.getElementById('doc-date');
+const docDateAuto = document.getElementById('doc-date-auto');
+const blockDeleteBtn = document.getElementById('block-delete-btn');
+
+const selectionToolbar = document.getElementById('selection-toolbar');
+
+</script>
+    <script>
+/* === Injected utils.js === */
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+function formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+function downloadBase64File(base64Data, fileName) {
+    try {
+        if (!base64Data) {
+            alert('ファイルデータが存在しません。');
+            return;
+        }
+        const arr = base64Data.split(',');
+        const mimeMatch = arr[0].match(/:(.*?);/);
+        const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        const blob = new Blob([u8arr], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        alert('ファイルのダウンロードに失敗しました。');
+    }
+}
+
+function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+    }
+    return new Promise((resolve, reject) => {
+        try {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            const ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            ok ? resolve() : reject(new Error('copy failed'));
+        } catch (err) {
+            reject(err);
+        }
+    });
+}
+
+function todayISO() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function formatJPDate(iso) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    return m ? m[1] + '年' + Number(m[2]) + '月' + Number(m[3]) + '日' : '';
+}
+
+</script>
+    <script>
+/* === Injected quill-setup.js === */
+/* ★Quill用データ添付カスタム埋め込みコンポーネント (FileAttachmentBlot) の定義と登録 */
         const BlockEmbed = Quill.import('blots/block/embed');
         class FileAttachmentBlot extends BlockEmbed {
             static create(value) {
@@ -950,7 +1142,7 @@
         }, true);
 
         /* ===== ブロック削除ボタン (×) ===== */
-        const blockDeleteBtn = document.getElementById('block-delete-btn');
+        
         const BLOCK_SELECTOR = 'pre, aside[data-callout], blockquote, ul, ol, h2, h3, .file-attachment-card';
         let blockTarget = null;     // 現在×を表示しているブロックの要素群
         let blockHideTimer = null;
@@ -1093,153 +1285,407 @@
                 return false;
             }
         });
+</script>
+    <script>
+/* === Injected ui.js === */
+function syncDateField() {
+    if (docDateAuto.checked) {
+        docDate.value = todayISO();
+        docDate.disabled = true;
+    } else {
+        docDate.disabled = false;
+    }
+}
+function resetMeta() {
+    docVersion.value = '';
+    docDateAuto.checked = true;
+    syncDateField();
+}
+docDateAuto.addEventListener('change', syncDateField);
+syncDateField();
 
-        const plusBtn = document.getElementById('plus-btn');
-        const insertMenu = document.getElementById('insert-menu');
-        const tocList = document.getElementById('toc-list');
-        const charCount = document.getElementById('char-count');
-        const docTitle = document.getElementById('doc-title');
-        const imgToolbar = document.getElementById('img-toolbar');
+/* 左サイドバー(目次)の幅調整 */
+(function() {
+    const resizer = document.getElementById('sidebar-resizer');
+    const MIN_W = 160, MAX_W = 600, DEFAULT_W = 280;
+    let width = DEFAULT_W;
+    let dragging = false;
 
-        /* バージョン・更新日 */
-        const docVersion = document.getElementById('doc-version');
-        const docDate = document.getElementById('doc-date');
-        const docDateAuto = document.getElementById('doc-date-auto');
+    function apply() {
+        const w = Math.round(Math.max(MIN_W, Math.min(MAX_W, window.innerWidth - 400, width)));
+        document.documentElement.style.setProperty('--sidebar-width', w + 'px');
+    }
+    resizer.addEventListener('pointerdown', e => {
+        dragging = true;
+        resizer.setPointerCapture(e.pointerId);
+        document.body.classList.add('resizing');
+        e.preventDefault();
+    });
+    resizer.addEventListener('pointermove', e => {
+        if (!dragging) return;
+        width = e.clientX;
+        apply();
+    });
+    const end = () => {
+        dragging = false;
+        document.body.classList.remove('resizing');
+    };
+    resizer.addEventListener('pointerup', end);
+    resizer.addEventListener('pointercancel', end);
+    resizer.addEventListener('dblclick', () => { width = DEFAULT_W; apply(); });
+    resizer.addEventListener('keydown', e => {
+        if (e.key === 'ArrowLeft') { width = document.querySelector('.sidebar').offsetWidth - 16; apply(); e.preventDefault(); }
+        if (e.key === 'ArrowRight') { width = document.querySelector('.sidebar').offsetWidth + 16; apply(); e.preventDefault(); }
+    });
+    window.addEventListener('resize', apply);
+    apply();
+})();
 
-        function todayISO() {
-            const d = new Date();
-            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-        }
-        function formatJPDate(iso) {
-            const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
-            return m ? m[1] + '年' + Number(m[2]) + '月' + Number(m[3]) + '日' : '';
-        }
-        function syncDateField() {
-            if (docDateAuto.checked) {
-                docDate.value = todayISO();
-                docDate.disabled = true;
-            } else {
-                docDate.disabled = false;
-            }
-        }
-        function resetMeta() {
-            docVersion.value = '';
-            docDateAuto.checked = true;
-            syncDateField();
-        }
-        docDateAuto.addEventListener('change', syncDateField);
-        syncDateField();
-        
-        let currentRange = null;
-        let lastSelectionIndex = 0;
-        let activeImage = null;
-        let cropper = null;
-
-        let currentThumbnailData = null;
-        let currentBgData = null;
-        let isThumbnailCrop = false;
-
-        let toastTimeout;
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.add('show');
-            clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
-
-        /* 共通：Base64データをBlob化してダウンロード */
-        function downloadBase64File(base64Data, fileName) {
-            try {
-                if (!base64Data) {
-                    alert('ファイルデータが存在しません。');
-                    return;
-                }
-                const arr = base64Data.split(',');
-                const mimeMatch = arr[0].match(/:(.*?);/);
-                const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
-                const bstr = atob(arr[1]);
-                let n = bstr.length;
-                const u8arr = new Uint8Array(n);
-                while (n--) {
-                    u8arr[n] = bstr.charCodeAt(n);
-                }
-                const blob = new Blob([u8arr], { type: mime });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            } catch (err) {
-                alert('ファイルのダウンロードに失敗しました。');
-            }
-        }
-
-        /* クリップボードコピー (file:// 等の非セキュア環境でも動作するフォールバック付き) */
-        function copyText(text) {
-            if (navigator.clipboard && window.isSecureContext) {
-                return navigator.clipboard.writeText(text);
-            }
-            return new Promise((resolve, reject) => {
-                try {
-                    const ta = document.createElement('textarea');
-                    ta.value = text;
-                    ta.style.position = 'fixed';
-                    ta.style.opacity = '0';
-                    document.body.appendChild(ta);
-                    ta.select();
-                    const ok = document.execCommand('copy');
-                    document.body.removeChild(ta);
-                    ok ? resolve() : reject(new Error('copy failed'));
-                } catch (err) {
-                    reject(err);
-                }
-            });
-        }
-
-        /* 左サイドバー(目次)の幅調整 */
-        (function() {
-            const resizer = document.getElementById('sidebar-resizer');
-            const MIN_W = 160, MAX_W = 600, DEFAULT_W = 280;
-            let width = DEFAULT_W;
-            let dragging = false;
-
-            function apply() {
-                const w = Math.round(Math.max(MIN_W, Math.min(MAX_W, window.innerWidth - 400, width)));
-                document.documentElement.style.setProperty('--sidebar-width', w + 'px');
-            }
-            resizer.addEventListener('pointerdown', e => {
-                dragging = true;
-                resizer.setPointerCapture(e.pointerId);
-                document.body.classList.add('resizing');
-                e.preventDefault();
-            });
-            resizer.addEventListener('pointermove', e => {
-                if (!dragging) return;
-                width = e.clientX;
-                apply();
-            });
-            const end = () => {
-                dragging = false;
-                document.body.classList.remove('resizing');
+/* エディタ内コードブロックコピーボタン設置 */
+function updateEditorCodeBlocks() {
+    document.querySelectorAll('.ql-editor pre').forEach(pre => {
+        if (!pre.querySelector('.editor-copy-btn')) {
+            const btn = document.createElement('button');
+            btn.className = 'editor-copy-btn';
+            btn.textContent = 'コピー';
+            btn.setAttribute('contenteditable', 'false');
+            btn.onclick = function(e) {
+                e.stopPropagation();
+                const clone = pre.cloneNode(true);
+                const btnInClone = clone.querySelector('.editor-copy-btn');
+                if (btnInClone) btnInClone.remove();
+                
+                copyText(clone.textContent.trim()).then(() => {
+                    btn.textContent = 'コピーしました!';
+                    setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+                }).catch(() => showToast('コピーに失敗しました'));
             };
-            resizer.addEventListener('pointerup', end);
-            resizer.addEventListener('pointercancel', end);
-            resizer.addEventListener('dblclick', () => { width = DEFAULT_W; apply(); });
-            resizer.addEventListener('keydown', e => {
-                if (e.key === 'ArrowLeft') { width = document.querySelector('.sidebar').offsetWidth - 16; apply(); e.preventDefault(); }
-                if (e.key === 'ArrowRight') { width = document.querySelector('.sidebar').offsetWidth + 16; apply(); e.preventDefault(); }
-            });
-            window.addEventListener('resize', apply);
-            apply();
-        })();
+            pre.appendChild(btn);
+        }
+    });
+}
 
-        /* サムネイル管理 */
+/* 選択テキスト用ポップアップツールバー制御 */
+function positionSelectionToolbar(range) {
+    if (!selectionToolbar || !range || range.length === 0) {
+        hideSelectionToolbar();
+        return;
+    }
+    const bounds = quill.getBounds(range.index, range.length);
+    if (!bounds) {
+        hideSelectionToolbar();
+        return;
+    }
+
+    selectionToolbar.style.display = 'flex';
+    requestAnimationFrame(() => selectionToolbar.classList.add('show'));
+    updateSelectionToolbarActive(range);
+
+    const tbWidth = selectionToolbar.offsetWidth || 440;
+    const tbHeight = selectionToolbar.offsetHeight || 38;
+    const container = selectionToolbar.offsetParent || document.getElementById('editor-wrapper');
+    const containerWidth = container ? container.offsetWidth : 760;
+
+    // 水平位置：選択範囲の中央
+    let left = bounds.left + (bounds.width / 2) - (tbWidth / 2);
+    left = Math.max(10, Math.min(containerWidth - tbWidth - 10, left));
+
+    // 垂直位置：選択範囲の上側、画面端なら下側
+    let top = bounds.top - tbHeight - 12;
+    if (top < 0) {
+        top = bounds.bottom + 12;
+    }
+
+    selectionToolbar.style.left = left + 'px';
+    selectionToolbar.style.top = top + 'px';
+}
+
+function hideSelectionToolbar() {
+    if (selectionToolbar) {
+        selectionToolbar.classList.remove('show');
+        selectionToolbar.style.display = 'none';
+    }
+}
+
+function updateSelectionToolbarActive(range) {
+    if (!selectionToolbar || !range) return;
+    const formats = quill.getFormat(range);
+    selectionToolbar.querySelectorAll('.sel-btn').forEach(btn => {
+        const action = btn.dataset.action;
+        const val = btn.dataset.val;
+        let isActive = false;
+
+        if (action === 'bold') isActive = !!formats.bold;
+        else if (action === 'strike') isActive = !!formats.strike;
+        else if (action === 'code') isActive = !!formats.code;
+        else if (action === 'header') isActive = formats.header == val;
+        else if (action === 'list') isActive = formats.list === val;
+        else if (action === 'blockquote') isActive = !!formats.blockquote;
+        else if (action === 'code-block') isActive = !!formats['code-block'];
+        else if (action === 'callout') isActive = formats.callout === val;
+
+        btn.classList.toggle('active', isActive);
+    });
+}
+
+function applySelectionAction(action, val) {
+    const range = quill.getSelection();
+    if (!range) return;
+    const formats = quill.getFormat(range);
+
+    if (action === 'bold') {
+        quill.format('bold', !formats.bold, Quill.sources.USER);
+    } else if (action === 'strike') {
+        quill.format('strike', !formats.strike, Quill.sources.USER);
+    } else if (action === 'code') {
+        quill.format('code', !formats.code, Quill.sources.USER);
+    } else if (action === 'header') {
+        const targetVal = formats.header == val ? false : parseInt(val, 10);
+        quill.format('header', targetVal, Quill.sources.USER);
+    } else if (action === 'list') {
+        const targetVal = formats.list === val ? false : val;
+        quill.format('list', targetVal, Quill.sources.USER);
+    } else if (action === 'blockquote') {
+        quill.format('blockquote', !formats.blockquote, Quill.sources.USER);
+    } else if (action === 'code-block') {
+        quill.format('code-block', !formats['code-block'], Quill.sources.USER);
+    } else if (action === 'callout') {
+        const targetVal = formats.callout === val ? false : val;
+        quill.format('callout', targetVal, Quill.sources.USER);
+    } else if (action === 'clear') {
+        ['bold', 'italic', 'strike', 'underline', 'code', 'link'].forEach(f => {
+            if (formats[f]) quill.format(f, false, Quill.sources.USER);
+        });
+        LINE_FORMATS.forEach(f => {
+            if (formats[f]) quill.formatLine(range.index, range.length, f, false, Quill.sources.USER);
+        });
+    }
+
+    setTimeout(() => {
+        const newRange = quill.getSelection();
+        if (newRange && newRange.length > 0) {
+            updateSelectionToolbarActive(newRange);
+            positionSelectionToolbar(newRange);
+        }
+    }, 20);
+}
+
+if (selectionToolbar) {
+    selectionToolbar.querySelectorAll('.sel-btn').forEach(btn => {
+        btn.addEventListener('mousedown', function(e) {
+            e.preventDefault(); // 選択解除防止
+            const action = this.dataset.action;
+            const val = this.dataset.val;
+            applySelectionAction(action, val);
+        });
+    });
+}
+
+/* +ボタンおよび選択ツールバーの位置同期 */
+function updatePlusBtnPosition() {
+    const range = quill.getSelection();
+    if (range) {
+        currentRange = range;
+        if (range.length > 0) {
+            // テキスト選択中 -> 選択ツールバーを表示、+ボタンは閉じる
+            positionSelectionToolbar(range);
+            plusBtn.style.display = 'none';
+            insertMenu.style.display = 'none';
+        } else {
+            // キャレット（選択なし） -> 選択ツールバーを閉じる
+            hideSelectionToolbar();
+            const [line] = quill.getLine(range.index);
+            if (line && line.length() === 1) {
+                const bounds = quill.getBounds(range.index);
+                plusBtn.style.top = (bounds.top - 2) + 'px';
+                plusBtn.style.display = 'flex';
+            } else {
+                plusBtn.style.display = 'none';
+                insertMenu.style.display = 'none';
+            }
+        }
+    } else {
+        hideSelectionToolbar();
+        if (insertMenu.style.display !== 'block') {
+            plusBtn.style.display = 'none';
+        }
+    }
+}
+
+quill.on('editor-change', function(eventName, ...args) {
+    if (eventName === 'selection-change' && args[0]) {
+        lastSelectionIndex = args[0].index;
+    }
+    if (eventName === 'selection-change' || eventName === 'text-change') {
+        if (eventName === 'text-change') {
+            scheduleTOC();
+            updateCharCount();
+        }
+        updateEditorCodeBlocks();
+        if (eventName === 'selection-change') {
+            if (args[0]) showBlockDeleteForIndex(args[0].index);
+        } else {
+            setTimeout(positionBlockDeleteBtn, 0);
+        }
+        setTimeout(updatePlusBtnPosition, 10);
+    }
+});
+
+function toggleMenu(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (insertMenu.style.display === 'block') {
+        insertMenu.style.display = 'none';
+    } else {
+        insertMenu.style.visibility = 'hidden';
+        insertMenu.style.display = 'block';
+        positionInsertMenu();
+        insertMenu.style.visibility = 'visible';
+    }
+}
+
+/* 挿入メニューを常に画面内に収める */
+function positionInsertMenu() {
+    const margin = 12;
+    const vh = window.innerHeight;
+    const parentRect = insertMenu.offsetParent.getBoundingClientRect();
+    const btnRect = plusBtn.getBoundingClientRect();
+
+    insertMenu.style.maxHeight = (vh - margin * 2) + 'px';
+    const menuHeight = insertMenu.offsetHeight;
+
+    let top;
+    if (btnRect.bottom + 4 + menuHeight + margin <= vh) {
+        top = btnRect.bottom + 4;
+    } else if (btnRect.top - 8 - menuHeight - margin >= 0) {
+        top = btnRect.top - 8 - menuHeight;
+    } else {
+        top = Math.max(margin, Math.min(vh - menuHeight - margin, btnRect.top));
+    }
+    insertMenu.style.top = (top - parentRect.top) + 'px';
+}
+
+document.getElementById('main-content').addEventListener('scroll', () => {
+    if (insertMenu.style.display === 'block') positionInsertMenu();
+    if (selectionToolbar && selectionToolbar.classList.contains('show')) {
+        const range = quill.getSelection();
+        if (range && range.length > 0) positionSelectionToolbar(range);
+    }
+}, { passive: true });
+
+window.addEventListener('resize', () => {
+    if (insertMenu.style.display === 'block') positionInsertMenu();
+    if (selectionToolbar && selectionToolbar.classList.contains('show')) {
+        const range = quill.getSelection();
+        if (range && range.length > 0) positionSelectionToolbar(range);
+    }
+});
+
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.insert-menu') && !e.target.closest('.plus-btn')) {
+        insertMenu.style.display = 'none';
+        if (!quill.hasFocus()) {
+            plusBtn.style.display = 'none';
+        }
+    }
+});
+
+/* +メニューからの書式適用 (選択範囲がある場合も考慮) */
+function formatText(e, format, value) {
+    e.preventDefault();
+    if (currentRange) {
+        const isSelection = currentRange.length > 0;
+        quill.setSelection(currentRange.index, currentRange.length);
+        quill.format(format, value, Quill.sources.USER);
+
+        if (!isSelection && value && (format === 'list' || format === 'blockquote' || format === 'code-block')) {
+            ensureLineAfterBlock(currentRange.index);
+            quill.setSelection(currentRange.index, 0);
+            showToast('Shift + Enter キーでブロックを抜けられます');
+        }
+    }
+    insertMenu.style.display = 'none';
+}
+
+function insertPlainLine(e) {
+    e.preventDefault();
+    if (currentRange) {
+        quill.setSelection(currentRange.index);
+        try {
+            exitToPlainLine(currentRange.index);
+        } catch (err) {
+            console.error('insertPlainLine error:', err);
+            showToast('通常行の挿入に失敗しました');
+        }
+    }
+    insertMenu.style.display = 'none';
+}
+
+function formatCallout(e, type) {
+    e.preventDefault();
+    if (currentRange) {
+        const isSelection = currentRange.length > 0;
+        quill.setSelection(currentRange.index, currentRange.length);
+        const current = quill.getFormat().callout;
+        if (current === type) {
+            quill.format('callout', false, Quill.sources.USER);
+        } else {
+            quill.format('callout', type, Quill.sources.USER);
+            if (!isSelection) {
+                ensureLineAfterBlock(currentRange.index);
+                quill.setSelection(currentRange.index, 0);
+                showToast('Shift + Enter キーでブロックを抜けられます');
+            }
+        }
+    }
+    insertMenu.style.display = 'none';
+}
+
+function updateCharCount() {
+    const text = quill.getText().trim();
+    const count = text.length > 0 ? text.length : 0;
+    charCount.textContent = count + ' 文字';
+}
+
+let tocScheduled = false;
+function scheduleTOC() {
+    if (tocScheduled) return;
+    tocScheduled = true;
+    requestAnimationFrame(() => {
+        tocScheduled = false;
+        updateTOC();
+    });
+}
+
+function updateTOC() {
+    tocList.innerHTML = '';
+    const editorNodes = document.querySelector('.ql-editor').childNodes;
+    let hasHeading = false;
+
+    editorNodes.forEach((node, index) => {
+        if (node.tagName === 'H2' || node.tagName === 'H3') {
+            hasHeading = true;
+            const id = 'heading-' + index;
+            node.id = id;
+            
+            const li = document.createElement('li');
+            li.className = node.tagName === 'H2' ? 'toc-h2' : 'toc-h3';
+            li.textContent = node.textContent || '無題';
+            li.onclick = () => {
+                node.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            };
+            tocList.appendChild(li);
+        }
+    });
+
+    if (!hasHeading) {
+        tocList.innerHTML = '<li class="toc-empty">見出しを設定すると表示されます</li>';
+    }
+}
+</script>
+    <script>
+/* === Injected media.js === */
+/* サムネイル管理 */
         function triggerThumbnailUpload() {
             document.getElementById('thumbnail-upload').click();
         }
@@ -1298,7 +1744,7 @@
             showToast('背景画像を解除しました');
         }
 
-        /* 添付ファイル追加処理 */
+/* 添付ファイル追加処理 */
         function triggerFileUpload(e) {
             e.preventDefault();
             insertMenu.style.display = 'none';
@@ -1331,40 +1777,9 @@
             e.target.value = '';
         });
 
-        function formatBytes(bytes, decimals = 2) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const dm = decimals < 0 ? 0 : decimals;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-        }
+        
 
-        /* エディタ内コードブロックコピーボタン設置 */
-        function updateEditorCodeBlocks() {
-            document.querySelectorAll('.ql-editor pre').forEach(pre => {
-                if (!pre.querySelector('.editor-copy-btn')) {
-                    const btn = document.createElement('button');
-                    btn.className = 'editor-copy-btn';
-                    btn.textContent = 'コピー';
-                    btn.setAttribute('contenteditable', 'false');
-                    btn.onclick = function(e) {
-                        e.stopPropagation();
-                        const clone = pre.cloneNode(true);
-                        const btnInClone = clone.querySelector('.editor-copy-btn');
-                        if (btnInClone) btnInClone.remove();
-                        
-                        copyText(clone.textContent.trim()).then(() => {
-                            btn.textContent = 'コピーしました!';
-                            setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
-                        }).catch(() => showToast('コピーに失敗しました'));
-                    };
-                    pre.appendChild(btn);
-                }
-            });
-        }
-
-        /* 画像コントロール */
+/* 画像コントロール */
         document.querySelector('.ql-editor').addEventListener('click', function(e) {
             if (e.target.tagName === 'IMG') {
                 if (activeImage) activeImage.classList.remove('selected-img');
@@ -1483,7 +1898,28 @@
             if (activeImage) positionImgToolbar(activeImage);
         });
 
-        /* D&D 読み込み処理 */
+function insertImage(e) {
+            e.preventDefault();
+            document.getElementById('image-upload').click();
+            insertMenu.style.display = 'none';
+        }
+
+        document.getElementById('image-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const index = currentRange ? currentRange.index : quill.getLength();
+                quill.insertEmbed(index, 'image', event.target.result);
+                setTimeout(() => quill.setSelection(index + 1), 10);
+            };
+            reader.readAsDataURL(file);
+            e.target.value = '';
+        });
+</script>
+    <script>
+/* === Injected export.js === */
+/* D&D 読み込み処理 */
         window.addEventListener('dragover', e => e.preventDefault());
         window.addEventListener('drop', function(e) {
             e.preventDefault();
@@ -1543,216 +1979,14 @@
             reader.readAsText(file);
         }
 
-        docTitle.addEventListener('keydown', function(e) {
+docTitle.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 quill.focus();
             }
         });
 
-        function updatePlusBtnPosition() {
-            const range = quill.getSelection();
-            if (range) {
-                const [line] = quill.getLine(range.index);
-                if (line && line.length() === 1) {
-                    const bounds = quill.getBounds(range.index);
-                    plusBtn.style.top = (bounds.top - 2) + 'px';
-                    plusBtn.style.display = 'flex';
-                    currentRange = range;
-                } else {
-                    plusBtn.style.display = 'none';
-                    insertMenu.style.display = 'none';
-                }
-            } else {
-                if (insertMenu.style.display !== 'block') {
-                    plusBtn.style.display = 'none';
-                }
-            }
-        }
-
-        quill.on('editor-change', function(eventName, ...args) {
-            if (eventName === 'selection-change' && args[0]) {
-                lastSelectionIndex = args[0].index;
-            }
-            if (eventName === 'selection-change' || eventName === 'text-change') {
-                if (eventName === 'text-change') {
-                    scheduleTOC();
-                    updateCharCount();
-                }
-                updateEditorCodeBlocks();
-                if (eventName === 'selection-change') {
-                    if (args[0]) showBlockDeleteForIndex(args[0].index);
-                } else {
-                    setTimeout(positionBlockDeleteBtn, 0);
-                }
-                setTimeout(updatePlusBtnPosition, 10);
-            }
-        });
-
-        function toggleMenu(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (insertMenu.style.display === 'block') {
-                insertMenu.style.display = 'none';
-            } else {
-                insertMenu.style.visibility = 'hidden';
-                insertMenu.style.display = 'block';
-                positionInsertMenu();
-                insertMenu.style.visibility = 'visible';
-            }
-        }
-
-        /* 挿入メニューを常に画面内に収める (下→上→画面内に寄せる、の順で判定) */
-        function positionInsertMenu() {
-            const margin = 12;
-            const vh = window.innerHeight;
-            const parentRect = insertMenu.offsetParent.getBoundingClientRect();
-            const btnRect = plusBtn.getBoundingClientRect();
-
-            // 画面より高い場合は高さを制限してメニュー内をスクロール
-            insertMenu.style.maxHeight = (vh - margin * 2) + 'px';
-            const menuHeight = insertMenu.offsetHeight;
-
-            let top;   // ビューポート基準
-            if (btnRect.bottom + 4 + menuHeight + margin <= vh) {
-                top = btnRect.bottom + 4;                         // ボタンの下に表示
-            } else if (btnRect.top - 8 - menuHeight - margin >= 0) {
-                top = btnRect.top - 8 - menuHeight;               // ボタンの上に表示
-            } else {
-                top = Math.max(margin, Math.min(vh - menuHeight - margin, btnRect.top));   // 画面内に寄せる
-            }
-            insertMenu.style.top = (top - parentRect.top) + 'px';
-        }
-
-        // メニュー表示中にスクロール・リサイズしても見切れないよう再配置
-        document.getElementById('main-content').addEventListener('scroll', () => {
-            if (insertMenu.style.display === 'block') positionInsertMenu();
-        }, { passive: true });
-        window.addEventListener('resize', () => {
-            if (insertMenu.style.display === 'block') positionInsertMenu();
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.insert-menu') && !e.target.closest('.plus-btn')) {
-                insertMenu.style.display = 'none';
-                if (!quill.hasFocus()) {
-                    plusBtn.style.display = 'none';
-                }
-            }
-        });
-
-        function formatText(e, format, value) {
-            e.preventDefault();
-            if (currentRange) {
-                const idx = currentRange.index;
-                quill.setSelection(idx);
-                quill.format(format, value);
-
-                // リスト・引用・コードは、挿入後に一つ先へ空白行を用意する
-                if (value && (format === 'list' || format === 'blockquote' || format === 'code-block')) {
-                    ensureLineAfterBlock(idx);
-                    quill.setSelection(idx, 0);
-                    showToast('Shift + Enter キーでブロックを抜けられます');
-                }
-            }
-            insertMenu.style.display = 'none';
-        }
-
-        function insertPlainLine(e) {
-            e.preventDefault();
-            if (currentRange) {
-                quill.setSelection(currentRange.index);
-                try {
-                    exitToPlainLine(currentRange.index);
-                } catch (err) {
-                    console.error('insertPlainLine error:', err);
-                    showToast('通常行の挿入に失敗しました');
-                }
-            }
-            insertMenu.style.display = 'none';
-        }
-
-        function formatCallout(e, type) {
-            e.preventDefault();
-            if (currentRange) {
-                const idx = currentRange.index;
-                quill.setSelection(idx);
-                const current = quill.getFormat().callout;
-                if (current === type) {
-                    quill.format('callout', false);
-                } else {
-                    quill.format('callout', type);
-                    // 挿入後に一つ先へ空白行を用意する
-                    ensureLineAfterBlock(idx);
-                    quill.setSelection(idx, 0);
-                    showToast('Shift + Enter キーでブロックを抜けられます');
-                }
-            }
-            insertMenu.style.display = 'none';
-        }
-
-        function insertImage(e) {
-            e.preventDefault();
-            document.getElementById('image-upload').click();
-            insertMenu.style.display = 'none';
-        }
-
-        document.getElementById('image-upload').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const index = currentRange ? currentRange.index : quill.getLength();
-                quill.insertEmbed(index, 'image', event.target.result);
-                setTimeout(() => quill.setSelection(index + 1), 10);
-            };
-            reader.readAsDataURL(file);
-            e.target.value = '';
-        });
-
-        function updateCharCount() {
-            const text = quill.getText().trim();
-            const count = text.length > 0 ? text.length : 0;
-            charCount.textContent = count + ' 文字';
-        }
-
-        let tocScheduled = false;
-        function scheduleTOC() {
-            if (tocScheduled) return;
-            tocScheduled = true;
-            requestAnimationFrame(() => {
-                tocScheduled = false;
-                updateTOC();
-            });
-        }
-
-        function updateTOC() {
-            tocList.innerHTML = '';
-            const editorNodes = document.querySelector('.ql-editor').childNodes;
-            let hasHeading = false;
-
-            editorNodes.forEach((node, index) => {
-                if (node.tagName === 'H2' || node.tagName === 'H3') {
-                    hasHeading = true;
-                    const id = 'heading-' + index;
-                    node.id = id;
-                    
-                    const li = document.createElement('li');
-                    li.className = node.tagName === 'H2' ? 'toc-h2' : 'toc-h3';
-                    li.textContent = node.textContent || '無題';
-                    li.onclick = () => {
-                        node.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    };
-                    tocList.appendChild(li);
-                }
-            });
-
-            if (!hasHeading) {
-                tocList.innerHTML = '<li class="toc-empty">見出しを設定すると表示されます</li>';
-            }
-        }
-
-        function exportHTML() {
+function exportHTML() {
             hideImgToolbar();
             const title = docTitle.value || '無題の記事';
             const version = docVersion.value.trim();
@@ -2303,6 +2537,9 @@
                 showToast('エディタを初期化しました');
             }
         }
-    </script>
+
+
+</script>
+
 </body>
 </html>
