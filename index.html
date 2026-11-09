@@ -400,6 +400,95 @@
             opacity: 0.95;
         }
 
+        /* コンパクトな音声カードスタイル */
+        .audio-attachment-card {
+            background: #1e252a;
+            border: 1px solid #343d46;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin: 16px 0;
+            width: 100%;
+            box-sizing: border-box;
+            user-select: none;
+            cursor: default;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        .audio-main {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+        }
+        .audio-icon {
+            font-size: 22px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        .audio-details {
+            display: flex;
+            flex-direction: column;
+            min-width: 80px;
+            max-width: 180px;
+            flex-shrink: 0;
+        }
+        .audio-details .audio-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .audio-details .audio-size {
+            font-size: 11px;
+            color: #8c9ba5;
+        }
+        .audio-native-player {
+            flex: 1;
+            height: 32px;
+            min-width: 150px;
+            outline: none;
+        }
+        .audio-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding-top: 8px;
+            border-top: 1px solid #2a3236;
+        }
+        .audio-btn {
+            background: #2a3236;
+            border: 1px solid #444;
+            color: #d3dbe0;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            height: 26px;
+        }
+        .audio-btn:hover {
+            background: #3a444a;
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .audio-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+        .audio-divider {
+            width: 1px;
+            height: 14px;
+            background: #444;
+            margin: 0 4px;
+        }
         /* プラスボタン */
         .plus-btn {
             position: absolute;
@@ -600,6 +689,140 @@
             margin: 0 3px;
         }
 
+
+        /* 動画添付専用ブロック スタイル */
+        .video-attachment-card {
+            background: #1e252a;
+            border: 1px solid #343d46;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 20px 0;
+            width: 100%;
+            box-sizing: border-box;
+            user-select: none;
+            cursor: default;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+        .video-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+        }
+        .video-info-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            flex: 1;
+        }
+        .video-icon {
+            display: flex;
+            align-items: center;
+            color: #8c9ba5;
+            flex-shrink: 0;
+        }
+        .video-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .video-info .video-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .video-info .video-size {
+            font-size: 11px;
+            color: #8c9ba5;
+        }
+        .video-download-btn {
+            background: #2a3236;
+            border: 1px solid #555;
+            color: #ccc;
+            border-radius: 6px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+        }
+        .video-download-btn:hover {
+            background: #3a444a;
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .video-player-wrapper {
+            width: 100%;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #111;
+        }
+        .video-player-wrapper video {
+            width: 100%;
+            max-height: 480px;
+            display: block;
+            outline: none;
+            background: #000;
+        }
+
+        /* YouTube動画埋め込みスタイル */
+        .youtube-attachment-card {
+            background: #1e252a;
+            border: 1px solid #343d46;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin: 20px 0;
+            width: 100%;
+            box-sizing: border-box;
+            user-select: none;
+            cursor: default;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+        .youtube-card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #ddd;
+        }
+        .youtube-card-header svg {
+            color: #ff0000;
+            flex-shrink: 0;
+        }
+        .youtube-player-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #000;
+        }
+        .youtube-player-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
 </style>
 </head>
 <body>
@@ -657,6 +880,9 @@
                     <div class="menu-item" onmousedown="insertPlainLine(event)"><i>↵</i> 通常行 (ブロックを抜ける)</div>
                     <div class="menu-item" onmousedown="insertImage(event)"><i>🖼️</i> 画像</div>
                     <div class="menu-item" onmousedown="triggerFileUpload(event)"><i>📎</i> ファイル添付 (.zip, .py...)</div>
+                    <div class="menu-item" onmousedown="triggerAudioUpload(event)"><i>🎙️</i> 音声添付 (.mp3, .wav...)</div>
+                    <div class="menu-item" onmousedown="triggerVideoUpload(event)"><i>🎬</i> 動画添付 (.mp4, .mov...)</div>
+                    <div class="menu-item" onmousedown="triggerYouTubeEmbed(event)"><i>▶</i> YouTube動画埋め込み</div>
                     <div class="menu-item" onmousedown="formatText(event, 'header', 2)"><i>H2</i> 大見出し</div>
                     <div class="menu-item" onmousedown="formatText(event, 'header', 3)"><i>H3</i> 小見出し</div>
                     <div class="menu-item" onmousedown="formatText(event, 'list', 'bullet')"><i>≡</i> 箇条書きリスト</div>
@@ -726,6 +952,8 @@
     <input type="file" id="thumbnail-upload" accept="image/*" style="display: none;">
     <input type="file" id="bg-upload" accept="image/*" style="display: none;">
     <input type="file" id="file-attachment-upload" style="display: none;">
+    <input type="file" id="audio-upload" accept="audio/*,.mp3,.wav,.m4a,.ogg,.aac" style="display: none;">
+    <input type="file" id="video-upload" accept="video/mp4,video/quicktime,video/webm,video/*,.mp4,.mov,.webm" style="display: none;">
     
     <!-- トースト通知 -->
     <div id="toast" class="toast">処理が完了しました</div>
@@ -872,6 +1100,38 @@ function formatJPDate(iso) {
     return m ? m[1] + '年' + Number(m[2]) + '月' + Number(m[3]) + '日' : '';
 }
 
+
+// 音声コントロール用関数
+window.skipAudio = function(btn, sec) {
+    const audio = btn.closest('.audio-attachment-card').querySelector('audio');
+    if (audio) audio.currentTime += sec;
+};
+window.toggleAudioSpeed = function(btn) {
+    const audio = btn.closest('.audio-attachment-card').querySelector('audio');
+    if (!audio) return;
+    let speed = audio.playbackRate;
+    if (speed === 1.0) speed = 1.25;
+    else if (speed === 1.25) speed = 1.5;
+    else if (speed === 1.5) speed = 2.0;
+    else speed = 1.0;
+    audio.playbackRate = speed;
+    btn.textContent = '▶ ' + speed.toFixed(1) + 'x';
+};
+window.toggleAudioLoop = function(btn) {
+    const audio = btn.closest('.audio-attachment-card').querySelector('audio');
+    if (!audio) return;
+    audio.loop = !audio.loop;
+    if (audio.loop) {
+        btn.style.color = '#2cb696';
+        btn.style.borderColor = '#2cb696';
+        btn.style.background = 'rgba(44, 182, 150, 0.1)';
+    } else {
+        btn.style.color = '';
+        btn.style.borderColor = '';
+        btn.style.background = '';
+    }
+};
+
 </script>
     <script>
 /* === Injected quill-setup.js === */
@@ -916,6 +1176,143 @@ function formatJPDate(iso) {
         FileAttachmentBlot.className = 'file-attachment-card';
 
         Quill.register(FileAttachmentBlot);
+
+        /* ★Quill用音声添付カスタム埋め込みコンポーネント (AudioAttachmentBlot) の定義と登録 */
+        class AudioAttachmentBlot extends BlockEmbed {
+            static create(value) {
+                const node = super.create();
+                const fileName = value.fileName || '音声ファイル';
+                const fileSize = value.fileSize || '';
+                const fileData = value.fileData || '';
+
+                node.setAttribute('data-filename', fileName);
+                node.setAttribute('data-filesize', fileSize);
+                node.setAttribute('data-filedata', fileData);
+                node.setAttribute('contenteditable', 'false');
+
+                node.innerHTML = `
+                    <div class="audio-main">
+                        <div class="audio-icon" style="display:flex;align-items:center;color:#8c9ba5;margin-right:2px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg></div>
+                        <div class="audio-details">
+                            <div class="audio-name" title="${escapeHtml(fileName)}">${escapeHtml(fileName)}</div>
+                            <div class="audio-size">${escapeHtml(fileSize)}</div>
+                        </div>
+                        <audio class="audio-native-player" controls preload="metadata" src="${fileData}"></audio>
+                    </div>
+                    <div class="audio-actions">
+                        <button type="button" class="audio-btn" onclick="skipAudio(this, -10)" title="10秒戻る">◀◀ -10s</button>
+                        <button type="button" class="audio-btn" onclick="skipAudio(this, 10)" title="10秒進む">+10s ▶▶</button>
+                        <button type="button" class="audio-btn speed-btn" onclick="toggleAudioSpeed(this)" title="再生速度">▶ 1.0x</button>
+                        <button type="button" class="audio-btn loop-btn" onclick="toggleAudioLoop(this)" title="ループ再生">↻</button>
+                        <div class="audio-divider"></div>
+                        <button type="button" class="audio-btn dl-btn" onclick="downloadBase64File(this.closest('.audio-attachment-card').getAttribute('data-filedata'), this.closest('.audio-attachment-card').getAttribute('data-filename'))" title="音声ファイルをダウンロード">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        </button>
+                    </div>
+                `;
+                return node;
+            }
+
+            static value(node) {
+                return {
+                    fileName: node.getAttribute('data-filename'),
+                    fileSize: node.getAttribute('data-filesize'),
+                    fileData: node.getAttribute('data-filedata')
+                };
+            }
+        }
+        AudioAttachmentBlot.blotName = 'audioCard';
+        AudioAttachmentBlot.tagName = 'div';
+        AudioAttachmentBlot.className = 'audio-attachment-card';
+
+        Quill.register(AudioAttachmentBlot);
+
+        /* ★Quill用動画添付カスタム埋め込みコンポーネント (VideoAttachmentBlot) の定義と登録 */
+        class VideoAttachmentBlot extends BlockEmbed {
+            static create(value) {
+                const node = super.create();
+                const fileName = value.fileName || '動画ファイル';
+                const fileSize = value.fileSize || '';
+                const fileData = value.fileData || '';
+
+                node.setAttribute('data-filename', fileName);
+                node.setAttribute('data-filesize', fileSize);
+                node.setAttribute('data-filedata', fileData);
+                node.setAttribute('contenteditable', 'false');
+
+                node.innerHTML = `
+                    <div class="video-card-header">
+                        <div class="video-info-group">
+                            <div class="video-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>
+                            </div>
+                            <div class="video-info">
+                                <div class="video-name" title="${escapeHtml(fileName)}">${escapeHtml(fileName)}</div>
+                                <div class="video-size">${escapeHtml(fileSize)}</div>
+                            </div>
+                        </div>
+                        <button type="button" class="video-download-btn" onclick="downloadBase64File(this.closest('.video-attachment-card').getAttribute('data-filedata'), this.closest('.video-attachment-card').getAttribute('data-filename'))" title="動画ファイルをダウンロード">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        </button>
+                    </div>
+                    <div class="video-player-wrapper">
+                        <video controls preload="metadata" playsinline src="${fileData}"></video>
+                    </div>
+                `;
+                return node;
+            }
+
+            static value(node) {
+                return {
+                    fileName: node.getAttribute('data-filename'),
+                    fileSize: node.getAttribute('data-filesize'),
+                    fileData: node.getAttribute('data-filedata')
+                };
+            }
+        }
+        VideoAttachmentBlot.blotName = 'videoCard';
+        VideoAttachmentBlot.tagName = 'div';
+        VideoAttachmentBlot.className = 'video-attachment-card';
+
+        Quill.register(VideoAttachmentBlot);
+
+        /* ★Quill用YouTube動画埋め込みコンポーネント (YouTubeAttachmentBlot) の定義と登録 */
+        class YouTubeAttachmentBlot extends BlockEmbed {
+            static create(value) {
+                const node = super.create();
+                const videoId = typeof value === 'string' ? value : (value.videoId || '');
+                const url = typeof value === 'object' && value.url ? value.url : `https://www.youtube.com/watch?v=${videoId}`;
+
+                node.setAttribute('data-youtube-id', videoId);
+                node.setAttribute('data-youtube-url', url);
+                node.setAttribute('contenteditable', 'false');
+
+                node.innerHTML = `
+                    <div class="youtube-card-header">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                        <span>YouTube 動画</span>
+                    </div>
+                    <div class="youtube-player-wrapper">
+                        <iframe src="https://www.youtube-nocookie.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                    </div>
+                `;
+                return node;
+            }
+
+            static value(node) {
+                return {
+                    videoId: node.getAttribute('data-youtube-id'),
+                    url: node.getAttribute('data-youtube-url')
+                };
+            }
+        }
+        YouTubeAttachmentBlot.blotName = 'youtubeCard';
+        YouTubeAttachmentBlot.tagName = 'div';
+        YouTubeAttachmentBlot.className = 'youtube-attachment-card';
+
+        Quill.register(YouTubeAttachmentBlot);
+
+
 
         /* 囲みブロック (注意 / 警告 / ヒント) */
         const QuillBlock = Quill.import('blots/block');
@@ -1047,7 +1444,7 @@ function formatJPDate(iso) {
         function isBlockEmbedAt(index) {
             if (index < 0 || index >= quill.getLength()) return false;
             const op = quill.getContents(index, 1).ops[0];
-            return !!op && typeof op.insert === 'object' && op.insert !== null && op.insert.fileCard !== undefined;
+            return !!op && typeof op.insert === 'object' && op.insert !== null && (op.insert.fileCard !== undefined || op.insert.audioCard !== undefined || op.insert.videoCard !== undefined || op.insert.youtubeCard !== undefined);
         }
 
         /* 添付ファイルカードの下に通常行を用意してカーソルを移す */
@@ -1143,7 +1540,7 @@ function formatJPDate(iso) {
 
         /* ===== ブロック削除ボタン (×) ===== */
         
-        const BLOCK_SELECTOR = 'pre, aside[data-callout], blockquote, ul, ol, h2, h3, .file-attachment-card';
+        const BLOCK_SELECTOR = 'pre, aside[data-callout], blockquote, ul, ol, h2, h3, .file-attachment-card, .audio-attachment-card, .video-attachment-card, .youtube-attachment-card';
         let blockTarget = null;     // 現在×を表示しているブロックの要素群
         let blockHideTimer = null;
 
@@ -1777,6 +2174,134 @@ function updateTOC() {
             e.target.value = '';
         });
 
+/* 音声添付追加処理 */
+function triggerAudioUpload(e) {
+    if (e) e.preventDefault();
+    insertMenu.style.display = 'none';
+    document.getElementById('audio-upload').click();
+}
+
+document.getElementById('audio-upload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const fileData = event.target.result;
+        const fileName = file.name;
+        const fileSize = formatBytes(file.size);
+
+        const range = quill.getSelection(true);
+        const index = range ? range.index : quill.getLength();
+
+        quill.insertEmbed(index, 'audioCard', {
+            fileName: fileName,
+            fileSize: fileSize,
+            fileData: fileData
+        }, Quill.sources.USER);
+
+        quill.setSelection(index + 1, Quill.sources.SILENT);
+        showToast('音声を添付しました');
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+});
+
+/* 動画添付追加処理 */
+function triggerVideoUpload(e) {
+    if (e) e.preventDefault();
+    insertMenu.style.display = 'none';
+    document.getElementById('video-upload').click();
+}
+
+document.getElementById('video-upload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 100 * 1024 * 1024) {
+        if (!confirm('選択された動画のサイズが大きいため（' + formatBytes(file.size) + '）、読み込みやHTML保存後の動作が重くなる可能性があります。添付を続行しますか？')) {
+            e.target.value = '';
+            return;
+        }
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const fileData = event.target.result;
+        const fileName = file.name;
+        const fileSize = formatBytes(file.size);
+
+        const range = quill.getSelection(true);
+        const index = range ? range.index : quill.getLength();
+
+        quill.insertEmbed(index, 'videoCard', {
+            fileName: fileName,
+            fileSize: fileSize,
+            fileData: fileData
+        }, Quill.sources.USER);
+
+        quill.setSelection(index + 1, Quill.sources.SILENT);
+        showToast('動画を添付しました');
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+});
+
+/* YouTube URLパーサー */
+function getYouTubeVideoId(url) {
+    if (!url) return null;
+    const m = url.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+?&v=|shorts\/))([\w-]{11})/);
+    return m ? m[1] : null;
+}
+
+/* YouTube動画埋め込み処理 */
+function triggerYouTubeEmbed(e) {
+    if (e) e.preventDefault();
+    insertMenu.style.display = 'none';
+    const url = prompt('YouTube動画のURLを入力してください:\n(例: https://www.youtube.com/watch?v=... または https://youtu.be/...)');
+    if (!url) return;
+    const videoId = getYouTubeVideoId(url.trim());
+    if (!videoId) {
+        alert('有効なYouTubeのURLが認識できませんでした。URLをご確認ください。');
+        return;
+    }
+
+    const range = quill.getSelection(true);
+    const index = range ? range.index : quill.getLength();
+
+    quill.insertEmbed(index, 'youtubeCard', {
+        videoId: videoId,
+        url: url.trim()
+    }, Quill.sources.USER);
+
+    quill.setSelection(index + 1, Quill.sources.SILENT);
+    showToast('YouTube動画を埋め込みました');
+}
+
+/* YouTubeのURLが空行にペーストされた場合の自動埋め込み */
+quill.root.addEventListener('paste', function(e) {
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    if (!text) return;
+    const trimmed = text.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+        const videoId = getYouTubeVideoId(trimmed);
+        if (videoId) {
+            const range = quill.getSelection();
+            if (range && isEmptyLineAt(range.index)) {
+                e.preventDefault();
+                quill.insertEmbed(range.index, 'youtubeCard', {
+                    videoId: videoId,
+                    url: trimmed
+                }, Quill.sources.USER);
+                quill.setSelection(range.index + 1, Quill.sources.SILENT);
+                showToast('YouTube動画を自動埋め込みしました');
+            }
+        }
+    }
+});
+
+
+
         
 
 /* 画像コントロール */
@@ -2260,7 +2785,152 @@ function exportHTML() {
         @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
         /* 印刷・PDF出力用 */
+        
+        /* 動画添付専用ブロック スタイル */
+        .video-attachment-card {
+            background: #1e252a;
+            border: 1px solid #343d46;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 20px 0;
+            width: 100%;
+            box-sizing: border-box;
+            user-select: none;
+            cursor: default;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+        .video-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+        }
+        .video-info-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            flex: 1;
+        }
+        .video-icon {
+            display: flex;
+            align-items: center;
+            color: #8c9ba5;
+            flex-shrink: 0;
+        }
+        .video-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .video-info .video-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .video-info .video-size {
+            font-size: 11px;
+            color: #8c9ba5;
+        }
+        .video-download-btn {
+            background: #2a3236;
+            border: 1px solid #555;
+            color: #ccc;
+            border-radius: 6px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+        }
+        .video-download-btn:hover {
+            background: #3a444a;
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .video-player-wrapper {
+            width: 100%;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #111;
+        }
+        .video-player-wrapper video {
+            width: 100%;
+            max-height: 480px;
+            display: block;
+            outline: none;
+            background: #000;
+        }
+
+        /* YouTube動画埋め込みスタイル */
+        .youtube-attachment-card {
+            background: #1e252a;
+            border: 1px solid #343d46;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin: 20px 0;
+            width: 100%;
+            box-sizing: border-box;
+            user-select: none;
+            cursor: default;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+        .youtube-card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #ddd;
+        }
+        .youtube-card-header svg {
+            color: #ff0000;
+            flex-shrink: 0;
+        }
+        .youtube-player-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #000;
+        }
+        .youtube-player-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
         @media print {
+            /* 動画・YouTubeカード印刷スタイル */
+            .video-attachment-card, .youtube-attachment-card {
+                background: #fff !important;
+                border: 1px solid #999;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .video-info .video-name { color: #000; }
+            .video-info .video-size { color: #555; }
+            .video-download-btn { display: none !important; }
+    
             @page { margin: 15mm; }
             html { scroll-behavior: auto; }
             body { display: block; background: #fff !important; background-image: none !important; }
@@ -2338,6 +3008,38 @@ function exportHTML() {
                     if (ok) resolve(); else reject(new Error('copy failed'));
                 } catch (err) { reject(err); }
             });
+        }
+
+        
+        /* 音声プレイヤーコントロール (出力HTML用) */
+        function skipAudio(btn, sec) {
+            const audio = btn.closest('.audio-attachment-card').querySelector('audio');
+            if (audio) audio.currentTime += sec;
+        }
+        function toggleAudioSpeed(btn) {
+            const audio = btn.closest('.audio-attachment-card').querySelector('audio');
+            if (!audio) return;
+            let speed = audio.playbackRate;
+            if (speed === 1.0) speed = 1.25;
+            else if (speed === 1.25) speed = 1.5;
+            else if (speed === 1.5) speed = 2.0;
+            else speed = 1.0;
+            audio.playbackRate = speed;
+            btn.textContent = '▶ ' + speed.toFixed(1) + 'x';
+        }
+        function toggleAudioLoop(btn) {
+            const audio = btn.closest('.audio-attachment-card').querySelector('audio');
+            if (!audio) return;
+            audio.loop = !audio.loop;
+            if (audio.loop) {
+                btn.style.color = '#2cb696';
+                btn.style.borderColor = '#2cb696';
+                btn.style.background = 'rgba(44, 182, 150, 0.1)';
+            } else {
+                btn.style.color = '';
+                btn.style.borderColor = '';
+                btn.style.background = '';
+            }
         }
 
         /* Base64ファイル安全ダウンロード処理 */
