@@ -823,6 +823,115 @@
             border: 0;
         }
 
+
+/* 挿入メニューの横展開（フライアウト）構造 */
+.insert-menu {
+    overflow: visible !important;
+}
+.menu-divider {
+    height: 1px;
+    background: #3a444a;
+    margin: 6px 12px;
+}
+.menu-parent {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    cursor: pointer;
+    color: #eee;
+}
+.menu-parent:hover {
+    background: var(--menu-hover);
+}
+.menu-parent-title {
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+}
+.menu-parent-title i {
+    margin-right: 12px;
+    font-style: normal;
+    color: var(--text-muted);
+    width: 16px;
+    text-align: center;
+}
+.menu-arrow {
+    margin-left: auto;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: bold;
+}
+.menu-submenu {
+    position: absolute;
+    left: calc(100% + 2px);
+    top: -6px;
+    background: var(--menu-bg);
+    border: 1px solid #444;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    width: 240px;
+    display: none;
+    flex-direction: column;
+    padding: 6px 0;
+    z-index: 150;
+    cursor: default;
+}
+/* マウス移動時の隙間をつなぐ判定エリア */
+.menu-submenu::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 0;
+    width: 8px;
+    height: 100%;
+}
+.menu-parent:hover > .menu-submenu {
+    display: flex;
+}
+.menu-parent.menu-align-bottom > .menu-submenu {
+    top: auto;
+    bottom: -6px;
+}
+.menu-submenu .menu-item {
+    padding: 8px 16px;
+    font-size: 13px;
+}
+.menu-submenu .menu-item i {
+    width: 14px;
+    margin-right: 8px;
+}
+/* URL参照モードのボタン */
+.file-download-btn.url-mode-btn {
+    background: #2cb696;
+    color: #fff !important;
+}
+.file-download-btn.url-mode-btn:hover {
+    background: #24997e;
+}
+/* ステータスバッジ スタイル */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.2;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin: 0 4px;
+    vertical-align: middle;
+    user-select: none;
+    cursor: default;
+    letter-spacing: 0.02em;
+}
+.badge-fix { background: rgba(44, 182, 150, 0.2); color: #2cb696; border: 1px solid #2cb696; }
+.badge-review { background: rgba(241, 196, 15, 0.2); color: #f1c40f; border: 1px solid #f1c40f; }
+.badge-done { background: rgba(52, 152, 219, 0.2); color: #3498db; border: 1px solid #3498db; }
+.badge-deprecated { background: rgba(231, 76, 60, 0.2); color: #ff6b6b; border: 1px solid #e74c3c; }
+.badge-custom { background: rgba(140, 155, 165, 0.2); color: #b0bec5; border: 1px solid #8c9ba5; }
+
 </style>
 </head>
 <body>
@@ -876,25 +985,61 @@
                 <div id="plus-btn" class="plus-btn" onmousedown="toggleMenu(event)">+</div>
                 
                 <div id="insert-menu" class="insert-menu">
-                    <div class="menu-label">挿入</div>
+                    <div class="menu-label">基本・見出し</div>
                     <div class="menu-item" onmousedown="insertPlainLine(event)"><i>↵</i> 通常行 (ブロックを抜ける)</div>
-                    <div class="menu-item" onmousedown="insertImage(event)"><i>🖼️</i> 画像</div>
-                    <div class="menu-item" onmousedown="triggerFileUpload(event)"><i>📎</i> ファイル添付 (.zip, .py...)</div>
-                    <div class="menu-item" onmousedown="triggerAudioUpload(event)"><i>🎙️</i> 音声添付 (.mp3, .wav...)</div>
-                    <div class="menu-item" onmousedown="triggerVideoUpload(event)"><i>🎬</i> 動画添付 (.mp4, .mov...)</div>
-                    <div class="menu-item" onmousedown="triggerYouTubeEmbed(event)"><i>▶</i> YouTube動画埋め込み</div>
                     <div class="menu-item" onmousedown="formatText(event, 'header', 2)"><i>H2</i> 大見出し</div>
                     <div class="menu-item" onmousedown="formatText(event, 'header', 3)"><i>H3</i> 小見出し</div>
-                    <div class="menu-item" onmousedown="formatText(event, 'list', 'bullet')"><i>≡</i> 箇条書きリスト</div>
-                    <div class="menu-item" onmousedown="formatText(event, 'list', 'ordered')"><i>1.</i> 番号付きリスト</div>
-                    <div class="menu-item" onmousedown="formatText(event, 'blockquote', true)"><i>❞</i> 引用</div>
                     <div class="menu-item" onmousedown="formatText(event, 'code-block', true)"><i>&lt;&gt;</i> コード</div>
-                    <div class="menu-item" onmousedown="formatCallout(event, 'note')"><i>⚠️</i> 注意ボックス</div>
-                    <div class="menu-item" onmousedown="formatCallout(event, 'warning')"><i>🚫</i> 警告ボックス</div>
-                    <div class="menu-item" onmousedown="formatCallout(event, 'tip')"><i>💡</i> ヒントボックス</div>
+
+                    <div class="menu-divider"></div>
+                    <div class="menu-label">グループ機能</div>
+
+                    <!-- メディア・添付グループ -->
+                    <div class="menu-parent">
+                        <div class="menu-parent-title"><i>📁</i> メディア・添付</div><span class="menu-arrow">›</span>
+                        <div class="menu-submenu">
+                            <div class="menu-item" onmousedown="insertImage(event)"><i>🖼️</i> 画像</div>
+                            <div class="menu-item" onmousedown="triggerFileUpload(event)"><i>📎</i> ファイル添付 (直接埋込)</div>
+                            <div class="menu-item" onmousedown="triggerFileUrlEmbed(event)"><i>🔗</i> ファイルリンク (Box等)</div>
+                            <div class="menu-item" onmousedown="triggerAudioUpload(event)"><i>🎙️</i> 音声添付 (.mp3, .wav...)</div>
+                            <div class="menu-item" onmousedown="triggerVideoUpload(event)"><i>🎬</i> 動画添付 (.mp4, .mov...)</div>
+                            <div class="menu-item" onmousedown="triggerYouTubeEmbed(event)"><i>▶</i> YouTube動画埋め込み</div>
+                        </div>
+                    </div>
+
+                    <!-- ステータスバッジグループ -->
+                    <div class="menu-parent">
+                        <div class="menu-parent-title"><i>🏷️</i> ステータスバッジ</div><span class="menu-arrow">›</span>
+                        <div class="menu-submenu">
+                            <div class="menu-item" onmousedown="insertStatusBadge(event, 'fix')"><i style="color:#2cb696; font-size:10px;">●</i> 仕様FIX (緑)</div>
+                            <div class="menu-item" onmousedown="insertStatusBadge(event, 'review')"><i style="color:#f1c40f; font-size:10px;">●</i> 検討中 (黄)</div>
+                            <div class="menu-item" onmousedown="insertStatusBadge(event, 'done')"><i style="color:#3498db; font-size:10px;">●</i> 実装済 (青)</div>
+                            <div class="menu-item" onmousedown="insertStatusBadge(event, 'deprecated')"><i style="color:#ff6b6b; font-size:10px;">●</i> 廃止/非推奨 (赤)</div>
+                            <div class="menu-item" onmousedown="insertStatusBadge(event, 'custom')"><i style="color:#b0bec5; font-size:10px;">●</i> 自由テキスト入力...</div>
+                        </div>
+                    </div>
+
+                    <!-- リスト・引用グループ -->
+                    <div class="menu-parent menu-align-bottom">
+                        <div class="menu-parent-title"><i>≡</i> リスト・引用</div><span class="menu-arrow">›</span>
+                        <div class="menu-submenu">
+                            <div class="menu-item" onmousedown="formatText(event, 'list', 'bullet')"><i>≡</i> 箇条書きリスト</div>
+                            <div class="menu-item" onmousedown="formatText(event, 'list', 'ordered')"><i>1.</i> 番号付きリスト</div>
+                            <div class="menu-item" onmousedown="formatText(event, 'blockquote', true)"><i>❞</i> 引用</div>
+                        </div>
+                    </div>
+
+                    <!-- 囲みボックスグループ -->
+                    <div class="menu-parent menu-align-bottom">
+                        <div class="menu-parent-title"><i>⚠️</i> 囲みボックス</div><span class="menu-arrow">›</span>
+                        <div class="menu-submenu">
+                            <div class="menu-item" onmousedown="formatCallout(event, 'note')"><i>⚠️</i> 注意ボックス (黄)</div>
+                            <div class="menu-item" onmousedown="formatCallout(event, 'warning')"><i>🚫</i> 警告ボックス (赤)</div>
+                            <div class="menu-item" onmousedown="formatCallout(event, 'tip')"><i>💡</i> ヒントボックス (緑)</div>
+                        </div>
+                    </div>
                 </div>
 
-                
                 <!-- 選択テキスト用フローティングポップアップツールバー -->
                 <div id="selection-toolbar" class="selection-toolbar">
                     <button type="button" class="sel-btn" data-action="bold" title="太字 (Ctrl+B)"><b>B</b></button>
@@ -912,6 +1057,7 @@
                     <button type="button" class="sel-btn" data-action="callout" data-val="warning" title="警告ボックス">🚫</button>
                     <button type="button" class="sel-btn" data-action="callout" data-val="tip" title="ヒントボックス">💡</button>
                     <span class="sel-divider"></span>
+                    <button type="button" class="sel-btn" data-action="badge" title="選択テキストをステータスバッジ化">🏷️</button>
                     <button type="button" class="sel-btn" data-action="clear" title="書式をクリア (通常の行に戻す)">↵</button>
                 </div>
 
@@ -1143,21 +1289,32 @@ window.toggleAudioLoop = function(btn) {
                 const fileName = value.fileName || '無題のファイル';
                 const fileSize = value.fileSize || '';
                 const fileData = value.fileData || '';
+                const fileUrl = value.fileUrl || '';
 
                 node.setAttribute('data-filename', fileName);
                 node.setAttribute('data-filesize', fileSize);
                 node.setAttribute('data-filedata', fileData);
+                if (fileUrl) node.setAttribute('data-fileurl', fileUrl);
                 node.setAttribute('contenteditable', 'false');
+
+                const isUrl = !!fileUrl;
+                const btnAction = isUrl
+                    ? `window.open(this.closest('.file-attachment-card').getAttribute('data-fileurl'), '_blank')`
+                    : `downloadBase64File(this.closest('.file-attachment-card').getAttribute('data-filedata'), this.closest('.file-attachment-card').getAttribute('data-filename'))`;
+                const btnText = isUrl ? 'リンクを開く' : 'ダウンロード';
+                const btnIcon = isUrl
+                    ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>`
+                    : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`;
 
                 node.innerHTML = `
                     <div class="file-info-side">
                         <div class="file-name">${escapeHtml(fileName)}</div>
                         <div class="file-size">${escapeHtml(fileSize)}</div>
-                        <div class="file-desc">ファイルダウンロードについて</div>
+                        <div class="file-desc">${isUrl ? 'クラウドストレージ / 外部共有リンク' : 'ファイルダウンロードについて'}</div>
                     </div>
-                    <button type="button" class="file-download-btn" onclick="downloadBase64File(this.closest('.file-attachment-card').getAttribute('data-filedata'), this.closest('.file-attachment-card').getAttribute('data-filename'))">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                        ダウンロード
+                    <button type="button" class="file-download-btn ${isUrl ? 'url-mode-btn' : ''}" onclick="${btnAction}">
+                        ${btnIcon}
+                        ${btnText}
                     </button>
                 `;
                 return node;
@@ -1167,7 +1324,8 @@ window.toggleAudioLoop = function(btn) {
                 return {
                     fileName: node.getAttribute('data-filename'),
                     fileSize: node.getAttribute('data-filesize'),
-                    fileData: node.getAttribute('data-filedata')
+                    fileData: node.getAttribute('data-filedata'),
+                    fileUrl: node.getAttribute('data-fileurl') || ''
                 };
             }
         }
@@ -1176,6 +1334,35 @@ window.toggleAudioLoop = function(btn) {
         FileAttachmentBlot.className = 'file-attachment-card';
 
         Quill.register(FileAttachmentBlot);
+
+        /* ★Quill用ステータスバッジ埋め込みコンポーネント (StatusBadgeBlot) の定義と登録 */
+        const InlineEmbed = Quill.import('blots/embed');
+        class StatusBadgeBlot extends InlineEmbed {
+            static create(value) {
+                const node = super.create();
+                const text = typeof value === 'object' ? (value.text || 'ステータス') : (value || 'ステータス');
+                const type = typeof value === 'object' ? (value.type || 'fix') : 'fix';
+
+                node.setAttribute('data-badge-text', text);
+                node.setAttribute('data-badge-type', type);
+                node.setAttribute('contenteditable', 'false');
+                node.textContent = text;
+                node.className = `status-badge badge-${type}`;
+                return node;
+            }
+
+            static value(node) {
+                return {
+                    text: node.getAttribute('data-badge-text') || node.textContent,
+                    type: node.getAttribute('data-badge-type') || 'fix'
+                };
+            }
+        }
+        StatusBadgeBlot.blotName = 'statusBadge';
+        StatusBadgeBlot.tagName = 'span';
+        StatusBadgeBlot.className = 'status-badge';
+
+        Quill.register(StatusBadgeBlot);
 
         /* ★Quill用音声添付カスタム埋め込みコンポーネント (AudioAttachmentBlot) の定義と登録 */
         class AudioAttachmentBlot extends BlockEmbed {
@@ -1830,7 +2017,19 @@ function applySelectionAction(action, val) {
     if (!range) return;
     const formats = quill.getFormat(range);
 
-    if (action === 'bold') {
+    if (action === 'badge') {
+        const text = quill.getText(range.index, range.length).trim();
+        if (text) {
+            quill.deleteText(range.index, range.length, Quill.sources.USER);
+            quill.insertEmbed(range.index, 'statusBadge', {
+                text: text,
+                type: 'fix'
+            }, Quill.sources.USER);
+            quill.insertText(range.index + 1, ' ', Quill.sources.USER);
+            quill.setSelection(range.index + 2, Quill.sources.USER);
+            showToast(`「${text}」をバッジ化しました`);
+        }
+    } else if (action === 'bold') {
         quill.format('bold', !formats.bold, Quill.sources.USER);
     } else if (action === 'strike') {
         quill.format('strike', !formats.strike, Quill.sources.USER);
@@ -2079,6 +2278,39 @@ function updateTOC() {
         tocList.innerHTML = '<li class="toc-empty">見出しを設定すると表示されます</li>';
     }
 }
+
+/* ステータスバッジ挿入処理 */
+function insertStatusBadge(e, type) {
+    if (e) e.preventDefault();
+    if (insertMenu) insertMenu.style.display = 'none';
+
+    let defaultText = '仕様FIX';
+    if (type === 'fix') defaultText = '仕様FIX';
+    else if (type === 'review') defaultText = '検討中';
+    else if (type === 'done') defaultText = '実装済';
+    else if (type === 'deprecated') defaultText = '非推奨';
+    else if (type === 'custom') defaultText = 'TODO';
+
+    let badgeText = defaultText;
+    if (type === 'custom') {
+        const input = prompt('バッジに表示するテキストを入力してください:', defaultText);
+        if (!input || !input.trim()) return;
+        badgeText = input.trim();
+    }
+
+    const range = quill.getSelection(true) || currentRange;
+    const index = range ? range.index : quill.getLength();
+
+    quill.insertEmbed(index, 'statusBadge', {
+        text: badgeText,
+        type: type
+    }, Quill.sources.USER);
+
+    quill.insertText(index + 1, ' ', Quill.sources.USER);
+    quill.setSelection(index + 2, Quill.sources.SILENT);
+    showToast(`バッジ「${badgeText}」を挿入しました`);
+}
+
 </script>
     <script>
 /* === Injected media.js === */
@@ -2140,6 +2372,43 @@ function updateTOC() {
             document.getElementById('btn-remove-bg').style.display = 'none';
             showToast('背景画像を解除しました');
         }
+
+/* ファイルリンク（Box・クラウド共有URL）追加処理 */
+function triggerFileUrlEmbed(e) {
+    if (e) e.preventDefault();
+    if (insertMenu) insertMenu.style.display = 'none';
+
+    const url = prompt('ファイルの共有リンクURL（Box、Google Drive、社内NAS等）を入力してください:');
+    if (!url || !url.trim()) return;
+
+    let defaultName = '参照ファイル';
+    try {
+        const parsed = new URL(url.trim());
+        const pathname = parsed.pathname;
+        const lastPart = pathname.substring(pathname.lastIndexOf('/') + 1);
+        if (lastPart && lastPart.includes('.')) {
+            defaultName = decodeURIComponent(lastPart);
+        }
+    } catch (err) {}
+
+    const fileName = prompt('表示するファイル名を入力してください:', defaultName);
+    if (!fileName || !fileName.trim()) return;
+
+    const fileDesc = prompt('ファイルの説明やサイズ（任意、例: Box共有 / 50MB）:', 'クラウド共有リンク');
+
+    const range = quill.getSelection(true) || currentRange;
+    const index = range ? range.index : quill.getLength();
+
+    quill.insertEmbed(index, 'fileCard', {
+        fileName: fileName.trim(),
+        fileSize: fileDesc ? fileDesc.trim() : '共有リンク',
+        fileData: '',
+        fileUrl: url.trim()
+    }, Quill.sources.USER);
+
+    quill.setSelection(index + 1, Quill.sources.SILENT);
+    showToast('ファイルリンクカードを挿入しました');
+}
 
 /* 添付ファイル追加処理 */
         function triggerFileUpload(e) {
@@ -2918,6 +3187,16 @@ function exportHTML() {
             height: 100%;
             border: 0;
         }
+
+        
+        /* ステータスバッジとURLリンク スタイル (出力HTML用) */
+        .file-download-btn.url-mode-btn { background: #2cb696; color: #fff !important; }
+        .status-badge { display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; line-height: 1.2; padding: 2px 8px; border-radius: 12px; margin: 0 4px; vertical-align: middle; user-select: none; cursor: default; }
+        .badge-fix { background: rgba(44, 182, 150, 0.15); color: #2cb696; border: 1px solid #2cb696; }
+        .badge-review { background: rgba(241, 196, 15, 0.15); color: #d4ac0d; border: 1px solid #f1c40f; }
+        .badge-done { background: rgba(52, 152, 219, 0.15); color: #2980b9; border: 1px solid #3498db; }
+        .badge-deprecated { background: rgba(231, 76, 60, 0.15); color: #c0392b; border: 1px solid #e74c3c; }
+        .badge-custom { background: rgba(140, 155, 165, 0.15); color: #546e7a; border: 1px solid #8c9ba5; }
 
         @media print {
             /* 動画・YouTubeカード印刷スタイル */
