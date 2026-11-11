@@ -1828,6 +1828,27 @@ window.toggleAudioLoop = function(btn) {
         window.addEventListener('resize', positionBlockDeleteBtn);
 
         /* Enter: コード・引用・囲みボックス内の空行で押すとブロックを抜ける (リストはQuill標準動作) */
+        
+        /* 見出し行末尾でのEnter時に通常行へ抜ける制御 */
+        quill.keyboard.bindings[13].unshift({
+            key: 13,
+            shiftKey: false,
+            collapsed: true,
+            handler: function(range, context) {
+                const f = context.format;
+                if (f.header) {
+                    const nlIndex = lineEndIndex(range.index);
+                    if (range.index === nlIndex) {
+                        // 見出しの行末でEnterした場合、通常行を作る
+                        insertPlainLineAfter(nlIndex);
+                        quill.setSelection(nlIndex + 1, 0, Quill.sources.USER);
+                        return false;
+                    }
+                }
+                return true;
+            }
+        });
+
         quill.keyboard.bindings[13].unshift({
             key: 13,
             shiftKey: false,
@@ -1836,6 +1857,8 @@ window.toggleAudioLoop = function(btn) {
                 const f = context.format;
                 if ((f['code-block'] || f.blockquote || f.callout) && isEmptyLineAt(range.index)) {
                     quill.formatLine(range.index, 1, getExitFormats(f), Quill.sources.USER);
+                    // 【修正】ブロック解除後にカーソル位置を再指定して迷子を防ぐ
+                    quill.setSelection(range.index, 0, Quill.sources.USER);
                     return false;
                 }
                 return true;
